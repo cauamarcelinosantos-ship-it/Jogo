@@ -69,10 +69,10 @@ form.addEventListener('submit', (event) => {
             return;
         }
         localStorage.setItem('jogo-user', JSON.stringify({ email, password }));
-        showMessage('Conta criada. Você já pode entrar.', true);
         setRegisterMode(false);
         emailInput.value = email;
         passwordInput.value = '';
+        showMessage('Conta criada. Você já pode entrar.', true);
         return;
     }
 
