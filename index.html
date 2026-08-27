@@ -3,17 +3,17 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Entrar | Jogo</title>
+        <title>Jogo | Acesse sua aventura</title>
         <link rel="stylesheet" href="style.css">
     </head>
 
     <body>
         <main class="game-page">
-            <section class="login-panel" aria-labelledby="login-title">
-                <div class="brand-mark" aria-hidden="true">J</div>
+            <section class="login-panel" id="login-panel" aria-labelledby="login-title">
+                <div class="brand-lockup"><div class="brand-mark" aria-hidden="true">J</div><strong>Jogo</strong></div>
                 <p class="eyebrow" id="form-mode-label">Acesso ao jogo</p>
-                <h1 id="login-title">Bem-vindo de volta.</h1>
-                <p class="intro" id="form-intro">Entre para continuar sua aventura.</p>
+                <h1 id="login-title">Entre na sua aventura.</h1>
+                <p class="intro" id="form-intro">Seu progresso espera por você.</p>
 
                 <form class="login-form" id="auth-form" novalidate>
                     <div class="field-group">
@@ -26,18 +26,20 @@
                             <label for="password">Senha</label>
                             <a href="#" id="forgot-password">Esqueci minha senha</a>
                         </div>
-                        <input id="password" name="password" type="password" autocomplete="current-password" placeholder="Digite sua senha" minlength="6" required>
+                        <div class="password-field">
+                            <input id="password" name="password" type="password" autocomplete="current-password" placeholder="Mínimo de 6 caracteres" minlength="6" required>
+                            <button class="password-toggle" type="button" id="password-toggle" aria-label="Mostrar senha">Mostrar</button>
+                        </div>
                     </div>
 
                     <label class="remember-me" id="remember-label">
                         <input type="checkbox" name="remember" checked>
-                        Lembrar de mim
+                        Lembrar de mim neste dispositivo
                     </label>
 
                     <p class="form-message" id="form-message" role="status" aria-live="polite"></p>
-                    <button type="submit" id="submit-button">
-                        <span id="submit-label">Entrar</span>
-                        <span aria-hidden="true">&#8594;</span>
+                    <button class="submit-button" type="submit" id="submit-button">
+                        <span id="submit-label">Entrar</span><span aria-hidden="true">&#8594;</span>
                     </button>
                 </form>
 
@@ -45,11 +47,11 @@
             </section>
 
             <section class="session-panel" id="session-panel" hidden aria-labelledby="session-title">
-                <div class="brand-mark" aria-hidden="true">J</div>
+                <div class="brand-lockup"><div class="brand-mark" aria-hidden="true">J</div><strong>Jogo</strong></div>
                 <p class="eyebrow">Sessão ativa</p>
                 <h1 id="session-title">Sua aventura continua.</h1>
                 <p class="intro" id="session-email"></p>
-                <button type="button" id="logout-button">Sair da conta <span aria-hidden="true">&#8594;</span></button>
+                <button class="submit-button" type="button" id="logout-button"><span>Sair da conta</span><span aria-hidden="true">&#8594;</span></button>
             </section>
 
             <aside class="login-art" aria-label="Destaque do jogo">

@@ -9,12 +9,14 @@ const forgotPassword = document.querySelector('#forgot-password');
 const formModeLabel = document.querySelector('#form-mode-label');
 const formIntro = document.querySelector('#form-intro');
 const loginTitle = document.querySelector('#login-title');
+const submitButton = document.querySelector('#submit-button');
 const submitLabel = document.querySelector('#submit-label');
 const rememberLabel = document.querySelector('#remember-label');
-const loginPanel = document.querySelector('.login-panel');
+const loginPanel = document.querySelector('#login-panel');
 const sessionPanel = document.querySelector('#session-panel');
 const sessionEmail = document.querySelector('#session-email');
 const logoutButton = document.querySelector('#logout-button');
+const passwordToggle = document.querySelector('#password-toggle');
 
 let isRegisterMode = false;
 const databaseName = 'jogo-database';
@@ -116,8 +118,8 @@ function setRegisterMode(registering) {
     const mode = registering ? 'Cadastro' : 'Acesso ao jogo';
 
     formModeLabel.textContent = mode;
-    loginTitle.textContent = registering ? 'Crie sua conta.' : 'Bem-vindo de volta.';
-    formIntro.textContent = registering ? 'Guarde seu progresso e comece a jogar.' : 'Entre para continuar sua aventura.';
+    loginTitle.textContent = registering ? 'Crie sua conta.' : 'Entre na sua aventura.';
+    formIntro.textContent = registering ? 'Guarde seu progresso e comece a jogar.' : 'Seu progresso espera por você.';
     submitLabel.textContent = registering ? 'Cadastrar' : 'Entrar';
     forgotPassword.hidden = registering;
     rememberLabel.hidden = registering;
@@ -126,6 +128,8 @@ function setRegisterMode(registering) {
         : 'Ainda não tem uma conta? <a href="#" id="switch-mode">Criar conta</a>';
     switchModeText.querySelector('a').addEventListener('click', toggleMode);
     showMessage('');
+    passwordInput.value = '';
+    passwordInput.autocomplete = registering ? 'new-password' : 'current-password';
 }
 
 function toggleMode(event) {
@@ -151,6 +155,8 @@ form.addEventListener('submit', async (event) => {
     }
 
     try {
+        submitButton.disabled = true;
+        submitLabel.textContent = isRegisterMode ? 'Cadastrando...' : 'Entrando...';
         const storedUser = await findUser(email);
         if (isRegisterMode) {
             if (storedUser) {
@@ -182,6 +188,9 @@ form.addEventListener('submit', async (event) => {
     } catch (error) {
         console.error('Erro ao acessar o banco de dados:', error);
         showMessage('Não foi possível acessar o banco de dados.');
+    } finally {
+        submitButton.disabled = false;
+        submitLabel.textContent = isRegisterMode ? 'Cadastrar' : 'Entrar';
     }
 });
 
@@ -190,6 +199,13 @@ switchMode.addEventListener('click', toggleMode);
 forgotPassword.addEventListener('click', (event) => {
     event.preventDefault();
     showMessage('Para redefinir a senha, crie uma nova conta com outro e-mail.');
+});
+
+passwordToggle.addEventListener('click', () => {
+    const isPasswordVisible = passwordInput.type === 'text';
+    passwordInput.type = isPasswordVisible ? 'password' : 'text';
+    passwordToggle.textContent = isPasswordVisible ? 'Mostrar' : 'Ocultar';
+    passwordToggle.setAttribute('aria-label', isPasswordVisible ? 'Mostrar senha' : 'Ocultar senha');
 });
 
 logoutButton.addEventListener('click', async () => {

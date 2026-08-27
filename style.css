@@ -38,6 +38,19 @@ body {
     margin: 0 auto;
 }
 
+.brand-lockup {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 36px;
+    color: #18352f;
+    font: 700 18px Arial, sans-serif;
+}
+
+.brand-lockup .brand-mark {
+    margin: 0;
+}
+
 [hidden] {
     display: none;
 }
@@ -129,6 +142,33 @@ input[type='password'] {
     transition: border-color 160ms ease, box-shadow 160ms ease;
 }
 
+.password-field {
+    position: relative;
+}
+
+.password-field input {
+    padding-right: 82px;
+}
+
+.password-toggle {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    width: auto;
+    padding: 6px 8px;
+    border: 0;
+    background: transparent;
+    color: #bf5e3c;
+    font-size: 12px;
+    transform: translateY(-50%);
+}
+
+.password-toggle:hover {
+    background: transparent;
+    transform: translateY(-50%);
+    text-decoration: underline;
+}
+
 input:focus {
     border-color: #bf5e3c;
     box-shadow: 0 0 0 3px rgba(191, 94, 60, 0.14);
@@ -165,6 +205,11 @@ button {
     cursor: pointer;
     font: 700 14px Arial, sans-serif;
     transition: background 160ms ease, transform 160ms ease;
+}
+
+button:disabled {
+    cursor: wait;
+    opacity: 0.7;
 }
 
 button:hover {
