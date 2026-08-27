@@ -29,6 +29,19 @@ body {
     margin: 0 auto;
 }
 
+.session-panel {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    width: min(100%, 500px);
+    padding: 48px clamp(28px, 7vw, 96px);
+    margin: 0 auto;
+}
+
+[hidden] {
+    display: none;
+}
+
 .brand-mark {
     display: grid;
     place-items: center;

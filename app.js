@@ -11,6 +11,10 @@ const formIntro = document.querySelector('#form-intro');
 const loginTitle = document.querySelector('#login-title');
 const submitLabel = document.querySelector('#submit-label');
 const rememberLabel = document.querySelector('#remember-label');
+const loginPanel = document.querySelector('.login-panel');
+const sessionPanel = document.querySelector('#session-panel');
+const sessionEmail = document.querySelector('#session-email');
+const logoutButton = document.querySelector('#logout-button');
 
 let isRegisterMode = false;
 const databaseName = 'jogo-database';
@@ -66,6 +70,40 @@ async function saveSession(session) {
         request.onsuccess = () => resolve();
         request.onerror = () => reject(request.error);
     });
+}
+
+async function findSession(email) {
+    const database = await openDatabase();
+    return new Promise((resolve, reject) => {
+        const request = database.transaction('sessions', 'readonly')
+            .objectStore('sessions')
+            .get(email);
+        request.onsuccess = () => resolve(request.result || null);
+        request.onerror = () => reject(request.error);
+    });
+}
+
+async function removeSession(email) {
+    const database = await openDatabase();
+    return new Promise((resolve, reject) => {
+        const request = database.transaction('sessions', 'readwrite')
+            .objectStore('sessions')
+            .delete(email);
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
+    });
+}
+
+function showSession(session) {
+    loginPanel.hidden = true;
+    sessionPanel.hidden = false;
+    sessionPanel.dataset.email = session.email;
+    sessionEmail.textContent = `Você está conectado como ${session.email}.`;
+}
+
+function showLogin() {
+    loginPanel.hidden = false;
+    sessionPanel.hidden = true;
 }
 
 function showMessage(text, isSuccess = false) {
@@ -135,10 +173,12 @@ form.addEventListener('submit', async (event) => {
         const session = { email, loggedInAt: Date.now() };
         if (rememberInput.checked) {
             await saveSession(session);
+            localStorage.setItem('jogo-remembered-email', email);
         } else {
             sessionStorage.setItem('jogo-session', JSON.stringify(session));
+            localStorage.removeItem('jogo-remembered-email');
         }
-        showMessage(`Login realizado. Boa aventura, ${email}!`, true);
+        showSession(session);
     } catch (error) {
         console.error('Erro ao acessar o banco de dados:', error);
         showMessage('Não foi possível acessar o banco de dados.');
@@ -150,4 +190,37 @@ switchMode.addEventListener('click', toggleMode);
 forgotPassword.addEventListener('click', (event) => {
     event.preventDefault();
     showMessage('Para redefinir a senha, crie uma nova conta com outro e-mail.');
+});
+
+logoutButton.addEventListener('click', async () => {
+    const activeSession = JSON.parse(sessionStorage.getItem('jogo-session') || 'null');
+    const activeEmail = activeSession?.email || sessionPanel.dataset.email;
+    try {
+        if (activeEmail) await removeSession(activeEmail);
+        sessionStorage.removeItem('jogo-session');
+        localStorage.removeItem('jogo-remembered-email');
+        showLogin();
+        showMessage('Você saiu da conta.', true);
+    } catch (error) {
+        console.error('Erro ao encerrar a sessão:', error);
+        showMessage('Não foi possível encerrar a sessão.');
+    }
+});
+
+async function restoreSession() {
+    const temporarySession = JSON.parse(sessionStorage.getItem('jogo-session') || 'null');
+    if (temporarySession) {
+        showSession(temporarySession);
+        return;
+    }
+
+    const rememberedEmail = localStorage.getItem('jogo-remembered-email');
+    if (!rememberedEmail) return;
+
+    const rememberedSession = await findSession(rememberedEmail);
+    if (rememberedSession) showSession(rememberedSession);
+}
+
+restoreSession().catch((error) => {
+    console.error('Erro ao restaurar a sessão:', error);
 });
