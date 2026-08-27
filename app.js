@@ -13,10 +13,15 @@ const submitButton = document.querySelector('#submit-button');
 const submitLabel = document.querySelector('#submit-label');
 const rememberLabel = document.querySelector('#remember-label');
 const loginPanel = document.querySelector('#login-panel');
-const sessionPanel = document.querySelector('#session-panel');
-const sessionEmail = document.querySelector('#session-email');
+const gamePanel = document.querySelector('#game-panel');
+const gamePlayer = document.querySelector('#game-player');
 const logoutButton = document.querySelector('#logout-button');
 const passwordToggle = document.querySelector('#password-toggle');
+const mapElement = document.querySelector('#map');
+const gameMessage = document.querySelector('#game-message');
+const energyValue = document.querySelector('#energy-value');
+const fragmentValue = document.querySelector('#fragment-value');
+const movementButtons = document.querySelectorAll('[data-move]');
 
 let isRegisterMode = false;
 const databaseName = 'jogo-database';
@@ -98,14 +103,96 @@ async function removeSession(email) {
 
 function showSession(session) {
     loginPanel.hidden = true;
-    sessionPanel.hidden = false;
-    sessionPanel.dataset.email = session.email;
-    sessionEmail.textContent = `Você está conectado como ${session.email}.`;
+    gamePanel.hidden = false;
+    gamePanel.dataset.email = session.email;
+    gamePlayer.textContent = session.email;
+    startGame(session.email);
 }
 
 function showLogin() {
     loginPanel.hidden = false;
-    sessionPanel.hidden = true;
+    gamePanel.hidden = true;
+}
+
+const mapCells = [
+    { icon: '✦', type: 'fragment' }, { icon: '🌲', type: 'forest' }, { icon: '✦', type: 'fragment' },
+    { icon: '⌁', type: 'water' }, { icon: '●', type: 'start' }, { icon: '🪨', type: 'rock' },
+    { icon: '✦', type: 'fragment' }, { icon: '🌲', type: 'forest' }, { icon: '◉', type: 'portal' }
+];
+let gameState = null;
+
+function getGameState(email) {
+    try {
+        const saved = JSON.parse(localStorage.getItem(`jogo-progress-${email}`) || 'null');
+        if (saved && Number.isInteger(saved.position) && Number.isInteger(saved.energy) && Array.isArray(saved.fragments)) {
+            return saved;
+        }
+    } catch (error) {
+        console.warn('Progresso inválido; uma nova aventura será iniciada.', error);
+    }
+    return { position: 4, energy: 12, fragments: [] };
+}
+
+function saveGameState() {
+    localStorage.setItem(`jogo-progress-${gameState.email}`, JSON.stringify(gameState));
+}
+
+function renderGame() {
+    mapElement.innerHTML = '';
+    mapCells.forEach((cell, index) => {
+        const tile = document.createElement('div');
+        tile.className = `map-tile ${cell.type}`;
+        const isPlayer = gameState.position === index;
+        if (isPlayer) tile.classList.add('player');
+        if (cell.type === 'fragment' && gameState.fragments.includes(index)) tile.classList.add('collected');
+        if (isPlayer) {
+            tile.innerHTML = '<span class="character" aria-hidden="true"><span class="character-hair"></span><span class="character-face">•</span><span class="character-body"></span></span>';
+        } else {
+            tile.innerHTML = `<span class="scene-object" aria-hidden="true">${cell.type === 'fragment' && gameState.fragments.includes(index) ? '·' : cell.icon}</span>`;
+        }
+        tile.setAttribute('aria-label', isPlayer ? 'Seu personagem está aqui' : `Casa ${index + 1}`);
+        mapElement.appendChild(tile);
+    });
+    energyValue.textContent = gameState.energy;
+    fragmentValue.textContent = `${gameState.fragments.length}/3`;
+}
+
+function startGame(email) {
+    gameState = { ...getGameState(email), email };
+    renderGame();
+}
+
+function movePlayer(direction) {
+    if (!gameState || gameState.energy <= 0 || gameState.fragments.length === 3) return;
+    const row = Math.floor(gameState.position / 3);
+    const column = gameState.position % 3;
+    const moves = { up: [-1, 0], down: [1, 0], left: [0, -1], right: [0, 1] };
+    if (!moves[direction]) return;
+    const [rowChange, columnChange] = moves[direction];
+    const nextRow = row + rowChange;
+    const nextColumn = column + columnChange;
+    if (nextRow < 0 || nextRow > 2 || nextColumn < 0 || nextColumn > 2) {
+        gameMessage.textContent = 'A montanha bloqueia esse caminho.';
+        return;
+    }
+
+    gameState.position = nextRow * 3 + nextColumn;
+    gameState.energy -= 1;
+    const cell = mapCells[gameState.position];
+    if (cell.type === 'fragment' && !gameState.fragments.includes(gameState.position)) {
+        gameState.fragments.push(gameState.position);
+        gameMessage.textContent = 'Você encontrou um fragmento de Aurora.';
+    } else if (cell.type === 'portal' && gameState.fragments.length < 3) {
+        gameMessage.textContent = 'O portal está adormecido. Faltam fragmentos.';
+    } else if (gameState.fragments.length === 3 && cell.type === 'portal') {
+        gameMessage.textContent = 'Portal aberto. Você venceu a aventura!';
+    } else if (gameState.energy === 0) {
+        gameMessage.textContent = 'Sua energia acabou. Recarregue a aventura para tentar de novo.';
+    } else {
+        gameMessage.textContent = 'A trilha segue silenciosa. Continue explorando.';
+    }
+    saveGameState();
+    renderGame();
 }
 
 function showMessage(text, isSuccess = false) {
@@ -209,8 +296,13 @@ passwordToggle.addEventListener('click', () => {
 });
 
 logoutButton.addEventListener('click', async () => {
-    const activeSession = JSON.parse(sessionStorage.getItem('jogo-session') || 'null');
-    const activeEmail = activeSession?.email || sessionPanel.dataset.email;
+    let activeSession = null;
+    try {
+        activeSession = JSON.parse(sessionStorage.getItem('jogo-session') || 'null');
+    } catch (error) {
+        sessionStorage.removeItem('jogo-session');
+    }
+    const activeEmail = activeSession?.email || gamePanel.dataset.email;
     try {
         if (activeEmail) await removeSession(activeEmail);
         sessionStorage.removeItem('jogo-session');
@@ -223,8 +315,26 @@ logoutButton.addEventListener('click', async () => {
     }
 });
 
+movementButtons.forEach((button) => {
+    button.addEventListener('click', () => movePlayer(button.dataset.move));
+});
+
+document.addEventListener('keydown', (event) => {
+    const directions = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right' };
+    if (directions[event.key] && !gamePanel.hidden) {
+        event.preventDefault();
+        movePlayer(directions[event.key]);
+    }
+});
+
 async function restoreSession() {
-    const temporarySession = JSON.parse(sessionStorage.getItem('jogo-session') || 'null');
+    let temporarySession = null;
+    try {
+        temporarySession = JSON.parse(sessionStorage.getItem('jogo-session') || 'null');
+    } catch (error) {
+        sessionStorage.removeItem('jogo-session');
+        console.warn('Sessão temporária inválida; o login será solicitado novamente.', error);
+    }
     if (temporarySession) {
         showSession(temporarySession);
         return;

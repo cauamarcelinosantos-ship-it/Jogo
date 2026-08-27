@@ -46,12 +46,38 @@
                 <p class="signup" id="switch-mode-text">Ainda não tem uma conta? <a href="#" id="switch-mode">Criar conta</a></p>
             </section>
 
-            <section class="session-panel" id="session-panel" hidden aria-labelledby="session-title">
-                <div class="brand-lockup"><div class="brand-mark" aria-hidden="true">J</div><strong>Jogo</strong></div>
-                <p class="eyebrow">Sessão ativa</p>
-                <h1 id="session-title">Sua aventura continua.</h1>
-                <p class="intro" id="session-email"></p>
-                <button class="submit-button" type="button" id="logout-button"><span>Sair da conta</span><span aria-hidden="true">&#8594;</span></button>
+            <section class="game-panel" id="game-panel" hidden aria-labelledby="game-title">
+                <header class="game-header">
+                    <div class="brand-lockup"><div class="brand-mark" aria-hidden="true">J</div><strong>Jogo</strong></div>
+                    <button class="logout-button" type="button" id="logout-button">Sair</button>
+                </header>
+                <div class="game-heading">
+                    <div>
+                        <p class="eyebrow">Vale de Aurora</p>
+                        <h1 id="game-title">Encontre os fragmentos.</h1>
+                        <p class="intro" id="game-player"></p>
+                    </div>
+                    <div class="game-stats" aria-label="Status da aventura">
+                        <div><strong id="energy-value">12</strong><span>energia</span></div>
+                        <div><strong id="fragment-value">0/3</strong><span>fragmentos</span></div>
+                    </div>
+                </div>
+                <div class="game-content">
+                    <div>
+                        <div class="map-frame">
+                            <div class="map" id="map" aria-label="Mapa do Vale de Aurora"></div>
+                        </div>
+                        <div class="movement" aria-label="Controles de movimento">
+                            <span></span><button type="button" data-move="up" aria-label="Mover para cima">&#8593;</button><span></span>
+                            <button type="button" data-move="left" aria-label="Mover para esquerda">&#8592;</button><button type="button" data-move="down" aria-label="Mover para baixo">&#8595;</button><button type="button" data-move="right" aria-label="Mover para direita">&#8594;</button>
+                        </div>
+                    </div>
+                    <aside class="journal">
+                        <p class="eyebrow">Diário</p>
+                        <p id="game-message">A trilha começa aqui. Explore o vale.</p>
+                        <div class="legend"><span class="legend-player">●</span> Você <span class="legend-fragment">✦</span> Fragmento <span class="legend-portal">◉</span> Portal</div>
+                    </aside>
+                </div>
             </section>
 
             <aside class="login-art" aria-label="Destaque do jogo">
