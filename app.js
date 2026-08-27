@@ -13,14 +13,64 @@ const submitLabel = document.querySelector('#submit-label');
 const rememberLabel = document.querySelector('#remember-label');
 
 let isRegisterMode = false;
+const databaseName = 'jogo-database';
+const databaseVersion = 1;
+
+function openDatabase() {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open(databaseName, databaseVersion);
+
+        request.onupgradeneeded = () => {
+            const database = request.result;
+            if (!database.objectStoreNames.contains('users')) {
+                database.createObjectStore('users', { keyPath: 'email' });
+            }
+            if (!database.objectStoreNames.contains('sessions')) {
+                database.createObjectStore('sessions', { keyPath: 'email' });
+            }
+        };
+
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+    });
+}
+
+async function findUser(email) {
+    const database = await openDatabase();
+    return new Promise((resolve, reject) => {
+        const request = database.transaction('users', 'readonly')
+            .objectStore('users')
+            .get(email);
+        request.onsuccess = () => resolve(request.result || null);
+        request.onerror = () => reject(request.error);
+    });
+}
+
+async function saveUser(user) {
+    const database = await openDatabase();
+    return new Promise((resolve, reject) => {
+        const request = database.transaction('users', 'readwrite')
+            .objectStore('users')
+            .add(user);
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
+    });
+}
+
+async function saveSession(session) {
+    const database = await openDatabase();
+    return new Promise((resolve, reject) => {
+        const request = database.transaction('sessions', 'readwrite')
+            .objectStore('sessions')
+            .put(session);
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
+    });
+}
 
 function showMessage(text, isSuccess = false) {
     message.textContent = text;
     message.classList.toggle('success', isSuccess);
-}
-
-function getStoredUser() {
-    return JSON.parse(localStorage.getItem('jogo-user') || 'null');
 }
 
 function setRegisterMode(registering) {
@@ -46,7 +96,7 @@ function toggleMode(event) {
     emailInput.focus();
 }
 
-form.addEventListener('submit', (event) => {
+form.addEventListener('submit', async (event) => {
     event.preventDefault();
     const email = emailInput.value.trim().toLowerCase();
     const password = passwordInput.value;
@@ -62,28 +112,37 @@ form.addEventListener('submit', (event) => {
         return;
     }
 
-    const storedUser = getStoredUser();
-    if (isRegisterMode) {
-        if (storedUser && storedUser.email === email) {
-            showMessage('Já existe uma conta com este e-mail.');
+    try {
+        const storedUser = await findUser(email);
+        if (isRegisterMode) {
+            if (storedUser) {
+                showMessage('Já existe uma conta com este e-mail.');
+                return;
+            }
+            await saveUser({ email, password, createdAt: Date.now() });
+            setRegisterMode(false);
+            emailInput.value = email;
+            passwordInput.value = '';
+            showMessage('Conta criada. Você já pode entrar.', true);
             return;
         }
-        localStorage.setItem('jogo-user', JSON.stringify({ email, password }));
-        setRegisterMode(false);
-        emailInput.value = email;
-        passwordInput.value = '';
-        showMessage('Conta criada. Você já pode entrar.', true);
-        return;
-    }
 
-    if (!storedUser || storedUser.email !== email || storedUser.password !== password) {
-        showMessage('E-mail ou senha incorretos.');
-        return;
-    }
+        if (!storedUser || storedUser.password !== password) {
+            showMessage('E-mail ou senha incorretos.');
+            return;
+        }
 
-    const storage = rememberInput.checked ? localStorage : sessionStorage;
-    storage.setItem('jogo-session', JSON.stringify({ email, loggedInAt: Date.now() }));
-    showMessage(`Login realizado. Boa aventura, ${email}!`, true);
+        const session = { email, loggedInAt: Date.now() };
+        if (rememberInput.checked) {
+            await saveSession(session);
+        } else {
+            sessionStorage.setItem('jogo-session', JSON.stringify(session));
+        }
+        showMessage(`Login realizado. Boa aventura, ${email}!`, true);
+    } catch (error) {
+        console.error('Erro ao acessar o banco de dados:', error);
+        showMessage('Não foi possível acessar o banco de dados.');
+    }
 });
 
 switchMode.addEventListener('click', toggleMode);
