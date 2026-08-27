@@ -1,0 +1,247 @@
+:root {
+    color: #1d2d2a;
+    background: #e8eee8;
+    font-family: Georgia, 'Times New Roman', serif;
+    font-synthesis: none;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    min-height: 100vh;
+    margin: 0;
+}
+
+.login-page {
+    display: grid;
+    grid-template-columns: minmax(360px, 0.9fr) minmax(420px, 1.1fr);
+    min-height: 100vh;
+}
+
+.login-panel {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    width: min(100%, 500px);
+    padding: 48px clamp(28px, 7vw, 96px);
+    margin: 0 auto;
+}
+
+.brand-mark {
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    margin-bottom: 28px;
+    border-radius: 50% 50% 50% 10px;
+    background: #e7835c;
+    color: #fff9f1;
+    font-size: 23px;
+    font-weight: bold;
+    transform: rotate(-8deg);
+}
+
+.eyebrow,
+.art-tag {
+    margin: 0 0 10px;
+    color: #bf5e3c;
+    font-family: Arial, sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+h1 {
+    max-width: 380px;
+    margin: 0;
+    color: #18352f;
+    font-size: clamp(34px, 4vw, 52px);
+    font-weight: 500;
+    line-height: 1.05;
+}
+
+.intro {
+    margin: 16px 0 38px;
+    color: #6a7973;
+    font-family: Arial, sans-serif;
+    font-size: 15px;
+}
+
+.login-form {
+    display: grid;
+    gap: 22px;
+    font-family: Arial, sans-serif;
+}
+
+.field-group {
+    display: grid;
+    gap: 9px;
+}
+
+label,
+.label-row {
+    color: #334641;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+a {
+    color: #bf5e3c;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+input[type='email'],
+input[type='password'] {
+    width: 100%;
+    padding: 15px 16px;
+    border: 1px solid #c9d5ce;
+    border-radius: 5px;
+    outline: none;
+    background: #f7faf6;
+    color: #18352f;
+    font: inherit;
+    transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+input:focus {
+    border-color: #bf5e3c;
+    box-shadow: 0 0 0 3px rgba(191, 94, 60, 0.14);
+}
+
+input::placeholder {
+    color: #9aa9a2;
+}
+
+.remember-me {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    color: #6a7973;
+    font-weight: 400;
+}
+
+.remember-me input {
+    width: 16px;
+    height: 16px;
+    accent-color: #883416;
+}
+
+button {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 16px 18px;
+    border: 0;
+    border-radius: 5px;
+    background: #1d4a40;
+    color: #fff9f1;
+    cursor: pointer;
+    font: 700 14px Arial, sans-serif;
+    transition: background 160ms ease, transform 160ms ease;
+}
+
+button:hover {
+    background: #286355;
+    transform: translateY(-1px);
+}
+
+button span {
+    font-size: 20px;
+    font-weight: 400;
+}
+
+.signup {
+    margin: 30px 0 0;
+    color: #6a7973;
+    font: 13px Arial, sans-serif;
+}
+
+.signup a {
+    font-weight: 700;
+}
+
+.login-art {
+    position: relative;
+    min-height: 520px;
+    overflow: hidden;
+    background: linear-gradient(145deg, #a9cec1 0%, #e8b779 100%);
+}
+
+.art-copy {
+    position: absolute;
+    z-index: 2;
+    top: 13%;
+    left: 12%;
+    color: #fff9f1;
+}
+
+.art-copy p {
+    margin: 0;
+    font-size: clamp(28px, 4vw, 58px);
+    line-height: 1.04;
+}
+
+.art-copy strong {
+    color: #fff0c9;
+    font-weight: 500;
+}
+
+.sun {
+    position: absolute;
+    top: 22%;
+    right: 19%;
+    width: min(25vw, 230px);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: #f7d485;
+    box-shadow: 0 0 70px rgba(255, 234, 170, 0.65);
+}
+
+.mountain {
+    position: absolute;
+    bottom: -1px;
+    width: 120%;
+    height: 48%;
+    clip-path: polygon(0 100%, 30% 25%, 45% 50%, 65% 5%, 100% 100%);
+}
+
+.mountain-back {
+    right: -10%;
+    background: #739c8c;
+}
+
+.mountain-front {
+    left: -12%;
+    height: 35%;
+    background: #316657;
+    clip-path: polygon(0 100%, 25% 35%, 42% 58%, 63% 18%, 100% 100%);
+}
+
+@media (max-width: 760px) {
+    .login-page {
+        display: block;
+    }
+
+    .login-panel {
+        min-height: 100vh;
+    }
+
+    .login-art {
+        display: none;
+    }
+}
+
