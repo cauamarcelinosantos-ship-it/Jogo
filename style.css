@@ -14,9 +14,9 @@ body {
     margin: 0;
 }
 
-.login-page {
+.game-page {
     display: grid;
-    grid-template-columns: minmax(360px, 0.9fr) minmax(420px, 1.1fr);
+    grid-template-columns: minmax(360px, 0.8fr) minmax(0, 1.2fr);
     min-height: 100vh;
 }
 
@@ -164,6 +164,17 @@ button span {
     font-weight: 400;
 }
 
+.form-message {
+    min-height: 18px;
+    margin: -8px 0 0;
+    color: #a33f27;
+    font: 13px/1.4 Arial, sans-serif;
+}
+
+.form-message.success {
+    color: #28705a;
+}
+
 .signup {
     margin: 30px 0 0;
     color: #6a7973;
@@ -176,7 +187,7 @@ button span {
 
 .login-art {
     position: relative;
-    min-height: 520px;
+    min-height: 100vh;
     overflow: hidden;
     background: linear-gradient(145deg, #a9cec1 0%, #e8b779 100%);
 }
@@ -232,16 +243,25 @@ button span {
 }
 
 @media (max-width: 760px) {
-    .login-page {
-        display: block;
-    }
-
-    .login-panel {
-        min-height: 100vh;
+    .game-page {
+        display: flex;
+        flex-direction: column-reverse;
     }
 
     .login-art {
-        display: none;
+        min-height: 38vh;
+    }
+
+    .login-panel {
+        min-height: 62vh;
+        padding-top: 36px;
+        padding-bottom: 42px;
+    }
+
+    .art-copy {
+        top: 10%;
+        left: 8%;
+        right: 8%;
     }
 }
 
