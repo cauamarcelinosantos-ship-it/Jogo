@@ -11,39 +11,19 @@
         <main class="game-page">
             <section class="login-panel" id="login-panel" aria-labelledby="login-title">
                 <div class="brand-lockup"><div class="brand-mark" aria-hidden="true">J</div><strong>Jogo</strong></div>
-                <p class="eyebrow" id="form-mode-label">Acesso ao jogo</p>
-                <h1 id="login-title">Entre na sua aventura.</h1>
-                <p class="intro" id="form-intro">Seu progresso espera por você.</p>
+                <p class="eyebrow">Login Necessário</p>
+                <h1 id="login-title">Acesse sua aventura</h1>
+                <p class="intro">Conecte com sua conta Google para começar a jogar</p>
 
-                <form class="login-form" id="auth-form" novalidate>
-                    <div class="field-group">
-                        <label for="email">E-mail</label>
-                        <input id="email" name="email" type="email" autocomplete="email" placeholder="voce@exemplo.com" required>
-                    </div>
-
-                    <div class="field-group">
-                        <div class="label-row">
-                            <label for="password">Senha</label>
-                            <a href="#" id="forgot-password">Esqueci minha senha</a>
-                        </div>
-                        <div class="password-field">
-                            <input id="password" name="password" type="password" autocomplete="current-password" placeholder="Mínimo de 6 caracteres" minlength="6" required>
-                            <button class="password-toggle" type="button" id="password-toggle" aria-label="Mostrar senha">Mostrar</button>
-                        </div>
-                    </div>
-
-                    <label class="remember-me" id="remember-label">
-                        <input type="checkbox" name="remember" checked>
-                        Lembrar de mim neste dispositivo
-                    </label>
-
-                    <p class="form-message" id="form-message" role="status" aria-live="polite"></p>
-                    <button class="submit-button" type="submit" id="submit-button">
-                        <span id="submit-label">Entrar</span><span aria-hidden="true">&#8594;</span>
+                <div class="login-form">
+                    <button class="google-login-btn" id="google-login-btn">
+                        <span aria-hidden="true">🔐</span> Entrar com Google
                     </button>
-                </form>
-
-                <p class="signup" id="switch-mode-text">Ainda não tem uma conta? <a href="#" id="switch-mode">Criar conta</a></p>
+                    <button class="anonymous-login-btn" id="anonymous-login-btn">
+                        Jogar Anonimamente
+                    </button>
+                    <p class="form-message" id="form-message" role="status" aria-live="polite"></p>
+                </div>
             </section>
 
             <section class="game-panel" id="game-panel" hidden aria-labelledby="game-title">
@@ -91,6 +71,6 @@
                 <div class="mountain mountain-front" aria-hidden="true"></div>
             </aside>
         </main>
-        <script src="app.js"></script>
+        <script src="app-firebase.js"></script>
     </body>
 </html>

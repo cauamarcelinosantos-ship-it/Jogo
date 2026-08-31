@@ -7,6 +7,9 @@ const GAME_CONFIG = {
 // ===== ELEMENTOS DO DOM =====
 const loginPanel = document.querySelector('#login-panel');
 const gamePanel = document.querySelector('#game-panel');
+const googleLoginBtn = document.querySelector('#google-login-btn');
+const anonymousLoginBtn = document.querySelector('#anonymous-login-btn');
+const formMessage = document.querySelector('#form-message');
 const logoutButton = document.querySelector('#logout-button');
 const mapElement = document.querySelector('#map');
 const gameMessage = document.querySelector('#game-message');
@@ -25,6 +28,8 @@ let powerUpActive = null;
 let powerUpTimer = null;
 let enemies = [];
 let enemyMoveCounter = 0;
+let currentUser = null;
+let db = null;
 
 // ===== CONFIGURAÇÃO DO MAPA =====
 const mapCells = [
@@ -32,6 +37,130 @@ const mapCells = [
     { icon: '⌁', type: 'water' }, { icon: '●', type: 'start' }, { icon: '⭐', type: 'powerup' },
     { icon: '✦', type: 'fragment' }, { icon: '🌲', type: 'forest' }, { icon: '◉', type: 'portal' }
 ];
+
+// ===== INICIALIZAR FIREBASE =====
+async function initFirebase() {
+    try {
+        // Configuração do Firebase com suas credenciais
+        const firebaseConfig = {
+            apiKey: "AIzaSyARdKWyJt_wMbCDtaHHq7rd3IUOiU_-jLM",
+            authDomain: "jogo-rpg-9397e.firebaseapp.com",
+            projectId: "jogo-rpg-9397e",
+            storageBucket: "jogo-rpg-9397e.firebasestorage.app",
+            messagingSenderId: "766202144087",
+            appId: "1:766202144087:web:b1ff8d02f99bbaa4174a12",
+            measurementId: "G-TK52NLJ4VN"
+        };
+
+        // Detectar se credenciais são placeholder
+        const isPlaceholder = firebaseConfig.apiKey.includes('DEMO') || 
+                            firebaseConfig.authDomain.includes('seu-projeto') ||
+                            firebaseConfig.projectId === 'seu-projeto';
+
+        if (isPlaceholder) {
+            console.warn('⚠️ Firebase não configurado. Usando modo OFFLINE.');
+            currentUser = { uid: 'offline-' + Date.now(), displayName: 'Jogador Local' };
+            db = null;
+            formMessage.textContent = '📱 Modo Offline - Progresso salvo localmente';
+            setTimeout(() => startGameFlow(), 500);
+            return;
+        }
+
+        const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js');
+        const { getAuth, signInWithPopup, GoogleAuthProvider, signInAnonymously, signOut, onAuthStateChanged } = await import('https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js');
+        const { getFirestore } = await import('https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js');
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        db = getFirestore(app);
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                showMessage(`Bem-vindo, ${user.displayName || 'Jogador'}!`, true);
+                setTimeout(() => startGameFlow(), 1000);
+            } else {
+                currentUser = null;
+                showLogin();
+            }
+        });
+
+        googleLoginBtn.addEventListener('click', async () => {
+            googleLoginBtn.disabled = true;
+            try {
+                console.log('🔐 Iniciando login com Google...');
+                const provider = new GoogleAuthProvider();
+                provider.addScope('profile');
+                provider.addScope('email');
+                const result = await signInWithPopup(auth, provider);
+                console.log('✅ Login Google bem-sucedido!', result.user);
+            } catch (error) {
+                console.error('❌ Erro ao fazer login com Google:', error);
+                console.error('Código do erro:', error.code);
+                console.error('Mensagem:', error.message);
+                
+                let mensagem = 'Erro ao conectar com Google. ';
+                
+                if (error.code === 'auth/popup-blocked') {
+                    mensagem += 'Pop-up foi bloqueado. Permita pop-ups para este site.';
+                } else if (error.code === 'auth/unauthorized-domain') {
+                    mensagem += 'Domínio não autorizado. Configure em Firebase Console > Auth > Settings';
+                } else if (error.code === 'auth/operation-not-allowed') {
+                    mensagem += 'Google não está habilitado em Firebase Console.';
+                } else if (error.code === 'auth/invalid-api-key') {
+                    mensagem += 'Credenciais Firebase inválidas. Verifique apiKey.';
+                } else {
+                    mensagem += error.message;
+                }
+                
+                showMessage(mensagem);
+                googleLoginBtn.disabled = false;
+            }
+        });
+
+        anonymousLoginBtn.addEventListener('click', async () => {
+            anonymousLoginBtn.disabled = true;
+            try {
+                await signInAnonymously(auth);
+            } catch (error) {
+                console.error('Erro ao fazer login anônimo:', error);
+                showMessage('Erro ao conectar. Tente novamente.');
+                anonymousLoginBtn.disabled = false;
+            }
+        });
+
+        logoutButton.addEventListener('click', async () => {
+            if (confirm('Deseja sair e voltar ao login?')) {
+                await signOut(auth);
+            }
+        });
+
+    } catch (error) {
+        console.error('Erro ao inicializar Firebase:', error);
+        currentUser = { uid: 'offline-' + Date.now(), displayName: 'Jogador Local' };
+        db = null;
+        showMessage('🔌 Modo Offline - Jogo sem conexão com servidor');
+        setTimeout(() => startGameFlow(), 1000);
+    }
+}
+
+// ===== FUNÇÕES DE MENSAGEM =====
+function showMessage(text, isSuccess = false) {
+    formMessage.textContent = text;
+    formMessage.classList.toggle('success', isSuccess);
+}
+
+function showLogin() {
+    loginPanel.hidden = false;
+    gamePanel.hidden = true;
+}
+
+// ===== INICIAR FLUXO DE JOGO =====
+function startGameFlow() {
+    loginPanel.hidden = true;
+    gamePanel.hidden = false;
+    showGameModeSelector();
+}
 
 // ===== SELETOR DE MODO DE JOGO =====
 function showGameModeSelector() {
@@ -43,9 +172,10 @@ function showGameModeSelector() {
 }
 
 // ===== INICIALIZAÇÃO DO JOGO =====
-function getGameState(email) {
+function getGameState() {
     try {
-        const saved = JSON.parse(localStorage.getItem(`jogo-progress-${email}`) || 'null');
+        const key = `jogo-progress-${currentUser?.uid || 'offline'}`;
+        const saved = JSON.parse(localStorage.getItem(key) || 'null');
         if (saved && Number.isInteger(saved.position) && Number.isInteger(saved.energy) && Array.isArray(saved.fragments)) {
             return saved;
         }
@@ -57,13 +187,35 @@ function getGameState(email) {
 }
 
 function saveGameState() {
-    localStorage.setItem(`jogo-progress-${gameState.email}`, JSON.stringify(gameState));
+    const key = `jogo-progress-${currentUser?.uid || 'offline'}`;
+    localStorage.setItem(key, JSON.stringify(gameState));
+}
+
+async function saveScoreToFirestore() {
+    if (!db || !currentUser) return;
+    
+    try {
+        const { collection, addDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js');
+        
+        const scoresRef = collection(db, 'scores');
+        await addDoc(scoresRef, {
+            userId: currentUser.uid,
+            userName: currentUser.displayName || 'Anônimo',
+            score: playerScore,
+            difficulty: gameDifficulty,
+            level: gameLevel,
+            timestamp: serverTimestamp()
+        });
+
+        console.log(`✓ Pontuação ${playerScore} salva no Firebase!`);
+    } catch (error) {
+        console.error('Erro ao salvar pontuação:', error);
+    }
 }
 
 function startNewGame() {
     const config = GAME_CONFIG[gameDifficulty];
     gameState = {
-        email: 'player',
         position: 4,
         energy: config.maxEnergy,
         fragments: [],
@@ -83,7 +235,7 @@ function generateEnemies() {
     const config = GAME_CONFIG[gameDifficulty];
     const count = Math.min(1 + gameLevel, 4);
     const enemies = [];
-    const forbidden = [4, 8]; // start e portal
+    const forbidden = [4, 8];
     
     for (let i = 0; i < count; i++) {
         let pos;
@@ -98,7 +250,7 @@ function generateEnemies() {
 
 // ===== MOVIMENTO DE INIMIGOS =====
 function moveEnemies() {
-    if (enemyMoveCounter++ % 2 !== 0) return; // Reduz velocidade
+    if (enemyMoveCounter++ % 2 !== 0) return;
     
     enemies.forEach(enemy => {
         const moves = [[-1, 0], [1, 0], [0, -1], [0, 1]];
@@ -117,7 +269,6 @@ function moveEnemies() {
             }
         }
         
-        // Inimigo capturou o jogador
         if (enemy.pos === gameState.position) {
             isGameOver = true;
             gameMessage.textContent = '💥 Você foi capturado! Fim de jogo.';
@@ -194,7 +345,6 @@ function movePlayer(direction) {
     gameState.position = nextRow * 3 + nextColumn;
     gameState.energy -= 1;
     
-    // Verificar inimigo
     if (!powerUpActive && enemies.some(e => e.pos === gameState.position)) {
         isGameOver = true;
         gameMessage.textContent = '💥 Você foi capturado! Fim de jogo.';
@@ -202,7 +352,6 @@ function movePlayer(direction) {
         return;
     }
     
-    // Remover escudo se colidiu com inimigo
     if (powerUpActive && enemies.some(e => e.pos === gameState.position)) {
         powerUpActive = null;
         gameMessage.textContent = 'Escudo quebrado! Cuidado!';
@@ -254,20 +403,14 @@ function winGame() {
     isGameWon = true;
     playerScore += 1000;
     gameMessage.textContent = '🏆 Você venceu a aventura completa! Parabéns!';
-    console.log(`Pontuação final: ${playerScore}`);
+    saveScoreToFirestore();
+    updateScore();
 }
 
 // ===== ATUALIZAR PONTUAÇÃO =====
 function updateScore() {
     const scoreDisplay = document.querySelector('#score-value');
     if (scoreDisplay) scoreDisplay.textContent = playerScore;
-}
-
-// ===== INICIAR JOGO DIRETO =====
-function initGame() {
-    loginPanel.hidden = true;
-    gamePanel.hidden = false;
-    showGameModeSelector();
 }
 
 // ===== EVENT LISTENERS - MOVIMENTO =====
@@ -283,13 +426,7 @@ document.addEventListener('keydown', (event) => {
     }
 });
 
-logoutButton.addEventListener('click', () => {
-    if (confirm('Deseja realmente sair e voltar ao menu?')) {
-        location.reload();
-    }
-});
-
-// ===== INICIAR JOGO QUANDO PÁGINA CARREGA =====
+// ===== INICIAR FIREBASE NA CARGA DA PÁGINA =====
 window.addEventListener('load', () => {
-    initGame();
+    initFirebase();
 });
