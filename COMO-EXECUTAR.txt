@@ -1,0 +1,237 @@
+╔════════════════════════════════════════════════════════════════════════════╗
+║                                                                            ║
+║                  🚀 COMO EXECUTAR O JOGO - GUIA RÁPIDO 🚀                ║
+║                                                                            ║
+║                  VALE DE AURORA - Sistema de Combate RPG                  ║
+║                                                                            ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+
+═══════════════════════════════════════════════════════════════════════════════
+  🐧 LINUX / macOS
+═══════════════════════════════════════════════════════════════════════════════
+
+  OPÇÃO 1: Um comando (Recomendado) ⭐
+  ─────────────────────────────────
+  $ bash start.sh
+
+  → Menu interativo
+  → Escolha 1 (Vanilla JS) ou 2 (React)
+  → Navegador abre automaticamente
+  → Jogue!
+
+
+  OPÇÃO 2: Com Node.js
+  ─────────────────────
+  $ node start.js
+
+  → Mesma coisa que start.sh
+
+
+  OPÇÃO 3: Vanilla JS Direto
+  ──────────────────────────
+  $ python3 -m http.server 8000
+
+  → Abra: http://localhost:8000/index.html
+
+
+  OPÇÃO 4: React Direto
+  ─────────────────────
+  $ cd react-app && npm install && npm run dev
+
+  → Abra: http://localhost:3000
+
+
+═══════════════════════════════════════════════════════════════════════════════
+  🪟 WINDOWS
+═══════════════════════════════════════════════════════════════════════════════
+
+  OPÇÃO 1: Clique Duplo (Mais Fácil) ⭐
+  ──────────────────────────────────
+  → Duplo-clique em: START.bat
+
+  → Menu interativo
+  → Escolha 1 (Vanilla JS) ou 2 (React)
+  → Navegador abre automaticamente
+  → Jogue!
+
+
+  OPÇÃO 2: Linha de Comando
+  ─────────────────────────
+  Abra CMD ou PowerShell e digite:
+
+  > start.bat
+    ou
+  > node start.js
+    ou
+  > python -m http.server 8000
+
+
+  OPÇÃO 3: Vanilla JS Manual
+  ──────────────────────────
+  PowerShell:
+  > python -m http.server 8000
+
+  Depois abra: http://localhost:8000/index.html
+
+
+  OPÇÃO 4: React Manual
+  ─────────────────────
+  > cd react-app
+  > npm install
+  > npm run dev
+
+  Depois acesse: http://localhost:3000
+
+
+═══════════════════════════════════════════════════════════════════════════════
+  📊 RESUMO VISUAL
+═══════════════════════════════════════════════════════════════════════════════
+
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │                                                                         │
+  │  VANILLA JAVASCRIPT ⚡              REACT 🚀                          │
+  │  ───────────────────                ──────────                        │
+  │  Execução: Imediata                Instalação: ~3 minutos             │
+  │  Porta: 8000                       Porta: 3000                        │
+  │  Setup: Nenhum                     Setup: npm install                 │
+  │  Ideal para: Testes rápidos        Ideal para: Produção               │
+  │                                                                         │
+  │  Comando:                          Comando:                           │
+  │  $ bash start.sh                   $ bash start.sh                    │
+  │  Escolha: 1                        Escolha: 2                         │
+  │                                                                         │
+  └─────────────────────────────────────────────────────────────────────────┘
+
+
+═══════════════════════════════════════════════════════════════════════════════
+  ✅ O QUE ACONTECE QUANDO VOCÊ EXECUTA
+═══════════════════════════════════════════════════════════════════════════════
+
+  1️⃣ Terminal mostra menu interativo
+  2️⃣ Você escolhe versão (1 ou 2)
+  3️⃣ Servidor inicia automaticamente
+  4️⃣ Navegador abre no jogo
+  5️⃣ Você faz login e joga!
+
+  ⏱️ Tempo total: ~10 segundos (Vanilla) ou ~3 minutos + 10 seg (React)
+
+
+═══════════════════════════════════════════════════════════════════════════════
+  🛠️ PREREQUISITOS
+═══════════════════════════════════════════════════════════════════════════════
+
+  VANILLA JAVASCRIPT:
+  ✅ Python 3 (opcional, para servidor)
+  ✅ Navegador moderno
+  ⏱️ Sem instalação necessária!
+
+  REACT:
+  ✅ Node.js 16+ (https://nodejs.org)
+  ✅ npm (vem com Node.js)
+  ✅ Navegador moderno
+  ⏱️ ~3 minutos para npm install
+
+
+═══════════════════════════════════════════════════════════════════════════════
+  🎮 FLUXO DE JOGO
+═══════════════════════════════════════════════════════════════════════════════
+
+  1. Executa script
+       ↓
+  2. Navegador abre (http://localhost:8000 ou 3000)
+       ↓
+  3. Escolha de login:
+     • Google (com conta Google)
+     • Anônimo (teste rápido)
+       ↓
+  4. Cria novo jogo
+       ↓
+  5. Explore o mapa Vale de Aurora (3x3)
+       ↓
+  6. Colete fragmentos
+       ↓
+  7. Encontre inimigos
+       ↓
+  8. Combate por turnos (use habilidades)
+       ↓
+  9. Suba de nível com XP
+       ↓
+  10. Repita! 🎮
+
+
+═══════════════════════════════════════════════════════════════════════════════
+  🆘 PROBLEMAS COMUNS
+═══════════════════════════════════════════════════════════════════════════════
+
+  ❌ "Command not found: bash"
+  → Você está no Windows
+  → Use: START.bat (duplo-clique)
+  → Ou: node start.js
+
+  ❌ "Python not found"
+  → Instale Python: https://python.org
+  → Ou use: node start.js
+
+  ❌ "Node.js not found"
+  → Instale Node.js: https://nodejs.org
+  → Vem com npm incluído
+
+  ❌ "Port already in use"
+  → Outra aplicação usa a porta
+  → Mude manualmente (exemplo 8080)
+  → python3 -m http.server 8080
+
+  ❌ "Navegador não abre"
+  → Abra manualmente:
+  → http://localhost:8000 (Vanilla)
+  → http://localhost:3000 (React)
+
+
+═══════════════════════════════════════════════════════════════════════════════
+  📚 DOCUMENTAÇÃO COMPLETA
+═══════════════════════════════════════════════════════════════════════════════
+
+  Arquivo              Conteúdo
+  ────────────────────────────────────────────────────────────
+  QUICK-START.txt      Guia visual com ASCII art
+  README.md            Documentação completa
+  RUN-GUIDE.md         Guia detalhado de execução
+  USAGE-EXAMPLES.js    10 exemplos de código
+  IMPLEMENTATION-GUIDE.md  Arquitetura técnica
+
+
+═══════════════════════════════════════════════════════════════════════════════
+  🎯 PARA COMEÇAR AGORA MESMO
+═══════════════════════════════════════════════════════════════════════════════
+
+  ABRA SEU TERMINAL E COPIE:
+
+  ╔─ Linux/macOS ─────────────────────────────────────────────────────╗
+  │                                                                   │
+  │  $ bash start.sh                                                 │
+  │                                                                   │
+  ╚─────────────────────────────────────────────────────────────────────╝
+
+  ╔─ Windows ─────────────────────────────────────────────────────────╗
+  │                                                                   │
+  │  Duplo-clique em: START.bat                                      │
+  │                                                                   │
+  │  OU no terminal:                                                 │
+  │  > node start.js                                                 │
+  │                                                                   │
+  ╚─────────────────────────────────────────────────────────────────────╝
+
+
+═══════════════════════════════════════════════════════════════════════════════
+
+                          ⏱️ PRÓXIMO PASSO: 5 SEGUNDOS
+                             bash start.sh (ou START.bat)
+
+═══════════════════════════════════════════════════════════════════════════════
+
+                              Bom jogo! 🗡️⚔️🛡️
+
+╔════════════════════════════════════════════════════════════════════════════╗
+║  Desenvolvido com ❤️  | 2026-09-01 | Vale de Aurora RPG                  ║
+╚════════════════════════════════════════════════════════════════════════════╝
