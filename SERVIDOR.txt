@@ -1,0 +1,178 @@
+╔════════════════════════════════════════════════════════════════════════════╗
+║                                                                            ║
+║                  🚀 EXECUTAR O JOGO EM UMA PORTA 🚀                       ║
+║                                                                            ║
+║                        Vale de Aurora - RPG Combat                         ║
+║                                                                            ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+
+═══════════════════════════════════════════════════════════════════════════════
+  ⚡ FORMA MAIS RÁPIDA: Um Comando!
+═══════════════════════════════════════════════════════════════════════════════
+
+  $ node server.js
+
+  ✅ Servidor inicia na porta 8000
+  ✅ Navegador abre automaticamente
+  ✅ Pronto para jogar em segundos!
+
+
+═══════════════════════════════════════════════════════════════════════════════
+  🔧 OPÇÕES DE PORTA
+═══════════════════════════════════════════════════════════════════════════════
+
+  PORTA PADRÃO (8000):
+  $ node server.js
+
+  PORTA CUSTOMIZADA (exemplo 3000):
+  $ PORT=3000 node server.js
+
+  PORTA CUSTOMIZADA (Windows):
+  > set PORT=3000 && node server.js
+
+  PORTA CUSTOMIZADA (PowerShell Windows):
+  > $env:PORT=3000; node server.js
+
+
+═══════════════════════════════════════════════════════════════════════════════
+  📊 PORTAS DISPONÍVEIS
+═══════════════════════════════════════════════════════════════════════════════
+
+  Recomendado: 8000, 3000, 5000, 8080, 9000
+  
+  Se receber erro "EADDRINUSE":
+  → Porta já está em uso
+  → Tente outra porta: PORT=3000 node server.js
+
+
+═══════════════════════════════════════════════════════════════════════════════
+  🎮 COMO JOGAR
+═══════════════════════════════════════════════════════════════════════════════
+
+  1. Execute:
+     $ node server.js
+
+  2. Navegador abre automaticamente em:
+     http://127.0.0.1:8000
+
+  3. Faça login (Google ou Anônimo)
+
+  4. Crie novo jogo
+
+  5. Explore, colete, combata, suba de nível!
+
+
+═══════════════════════════════════════════════════════════════════════════════
+  📝 EXEMPLOS DE USO
+═══════════════════════════════════════════════════════════════════════════════
+
+  Exemplo 1: Executar com porta padrão (8000)
+  $ node server.js
+
+  Exemplo 2: Executar com porta customizada
+  $ PORT=3000 node server.js
+
+  Exemplo 3: Em background (Linux/Mac)
+  $ node server.js &
+
+  Exemplo 4: Com logs adicionais
+  $ NODE_ENV=development node server.js
+
+
+═══════════════════════════════════════════════════════════════════════════════
+  🌐 ACESSAR EM OUTRO COMPUTADOR
+═══════════════════════════════════════════════════════════════════════════════
+
+  Padrão (apenas local):
+  http://127.0.0.1:8000
+  http://localhost:8000
+
+  De outro computador (precisa mudar código):
+  http://SEU_IP:8000
+
+  Nota: Para acessar de outro PC, edite server.js linha ~13:
+  const HOST = '0.0.0.0';  // ao invés de '127.0.0.1'
+
+
+═══════════════════════════════════════════════════════════════════════════════
+  🛑 PARAR O SERVIDOR
+═══════════════════════════════════════════════════════════════════════════════
+
+  Pressione: Ctrl + C
+
+  Você verá:
+  👋 Servidor encerrado. Até logo!
+
+
+═══════════════════════════════════════════════════════════════════════════════
+  🆘 RESOLUÇÃO DE PROBLEMAS
+═══════════════════════════════════════════════════════════════════════════════
+
+  ❌ "listen EADDRINUSE: address already in use :::8000"
+  → Porta 8000 já está em uso
+  → Use: PORT=3000 node server.js
+
+  ❌ "Cannot find module"
+  → Erro de Node.js
+  → Certifique-se que está no diretório correto
+  → Node.js está instalado: node --version
+
+  ❌ "ENOENT: no such file or directory"
+  → Arquivo não encontrado
+  → Verifique que index.html existe
+
+  ❌ "Permission denied"
+  → Problema de permissões
+  → Use: sudo node server.js (se necessário)
+
+
+═══════════════════════════════════════════════════════════════════════════════
+  📊 OUTRAS FORMAS DE EXECUTAR
+═══════════════════════════════════════════════════════════════════════════════
+
+  Com Python:
+  $ python3 -m http.server 8000
+
+  Com Python (Windows):
+  > python -m http.server 8000
+
+  Com script interativo (Bash):
+  $ bash start.sh
+
+  Com script interativo (Node.js):
+  $ node start.js
+
+  Com script Windows:
+  > START.bat
+
+
+═══════════════════════════════════════════════════════════════════════════════
+  ✅ CHECKLIST RÁPIDO
+═══════════════════════════════════════════════════════════════════════════════
+
+  □ Node.js instalado? (node --version)
+  □ Estou no diretório certo? (/workspaces/Jogo)
+  □ index.html existe? (ls index.html)
+  □ Executei: node server.js
+  □ Navegador abriu em http://localhost:8000
+  □ Página carregou sem erros
+  □ Login funcionou
+  □ Jogo iniciou
+  □ Divirta-se! 🎮
+
+
+═══════════════════════════════════════════════════════════════════════════════
+
+                       🎯 PRÓXIMO PASSO: 3 SEGUNDOS
+
+                              node server.js
+
+═══════════════════════════════════════════════════════════════════════════════
+
+                              Bom jogo! 🗡️⚔️🛡️
+
+╔════════════════════════════════════════════════════════════════════════════╗
+║  server.js - Servidor Node.js para Vale de Aurora                          ║
+║  2026-09-01                                                                 ║
+╚════════════════════════════════════════════════════════════════════════════╝
