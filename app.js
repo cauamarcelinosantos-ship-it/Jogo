@@ -26,6 +26,11 @@ let powerUpTimer = null;
 let enemies = [];
 let enemyMoveCounter = 0;
 
+// ===== SISTEMA DE COMBATE =====
+let battleManager = null;
+let battleRenderer = null;
+let inBattle = false;
+
 // ===== CONFIGURAÇÃO DO MAPA =====
 const mapCells = [
     { icon: '✦', type: 'fragment' }, { icon: '🌲', type: 'forest' }, { icon: '✦', type: 'fragment' },
@@ -67,13 +72,69 @@ function startNewGame() {
         position: 4,
         energy: config.maxEnergy,
         fragments: [],
-        level: gameLevel
+        level: gameLevel,
+        // Hero stats
+        name: 'Herói',
+        maxHp: 100,
+        hp: 100,
+        maxMp: 50,
+        mp: 50,
+        sprite: '⚔️',
+        xp: 0,
+        xpToNext: 100
     };
+    
     enemies = generateEnemies();
     powerUpActive = null;
     isGameWon = false;
     isGameOver = false;
+    inBattle = false;
     enemyMoveCounter = 0;
+    
+    // Inicializar sistema de combate
+    if (!battleManager) {
+        battleManager = new BattleManager(gameState);
+        battleRenderer = new BattleScreenRenderer('battle-container');
+        battleRenderer.setBattleManager(battleManager);
+        
+        // Listeners do sistema de combate
+        battleManager.on('onBattleStart', () => {
+            const battleContainer = document.getElementById('battle-container');
+            const mapContainer = document.getElementById('map');
+            if (battleContainer && mapContainer) {
+                mapContainer.parentElement.parentElement.style.display = 'none';
+                battleContainer.style.display = 'block';
+            }
+        });
+        
+        battleManager.on('onTurn', (battle) => {
+            battleRenderer.renderBattle(battle);
+        });
+        
+        battleManager.on('onBattleEnd', (battle) => {
+            if (battle.result === 'victory' || battle.result === 'levelUp') {
+                battleRenderer.renderResult(battle, () => {
+                    endBattle('victory');
+                }, () => {
+                    // Restart não aplicável em vitória
+                });
+            } else if (battle.result === 'defeat') {
+                battleRenderer.renderResult(battle, () => {
+                    // Continue não aplicável em derrota
+                }, () => {
+                    endBattle('defeat');
+                });
+            } else if (battle.result === 'flee') {
+                endBattle('flee');
+            }
+        });
+        
+        // Expor globalmente para onclick
+        window.battleManager = battleManager;
+    } else {
+        battleManager.hero = gameState;
+    }
+    
     renderGame();
     updateScore();
 }
@@ -174,7 +235,7 @@ function renderGame() {
 
 // ===== MOVIMENTO DO JOGADOR =====
 function movePlayer(direction) {
-    if (!gameState || gameState.energy <= 0 || isGameWon || isGameOver) return;
+    if (!gameState || gameState.energy <= 0 || isGameWon || isGameOver || inBattle) return;
     
     const row = Math.floor(gameState.position / 3);
     const column = gameState.position % 3;
@@ -195,9 +256,10 @@ function movePlayer(direction) {
     gameState.energy -= 1;
     
     // Verificar inimigo
-    if (!powerUpActive && enemies.some(e => e.pos === gameState.position)) {
-        isGameOver = true;
-        gameMessage.textContent = '💥 Você foi capturado! Fim de jogo.';
+    const enemyAtPosition = enemies.find(e => e.pos === gameState.position);
+    if (enemyAtPosition) {
+        // Iniciar combate
+        startBattle(enemyAtPosition);
         renderGame();
         return;
     }
@@ -231,6 +293,55 @@ function movePlayer(direction) {
     
     moveEnemies();
     saveGameState();
+    renderGame();
+}
+
+// ===== SISTEMA DE COMBATE =====
+function startBattle(enemy) {
+    if (!battleManager) return;
+    
+    inBattle = true;
+    const enemyType = Object.keys(ENEMIES_DATABASE).find(key => 
+        ENEMIES_DATABASE[key].sprite === '👾' || Math.random() > 0.5
+    );
+    
+    // Selecionar inimigo aleatório
+    const selectedEnemyId = ENEMIES_DATABASE[Math.floor(Math.random() * ENEMIES_DATABASE.length)].id;
+    const battle = battleManager.startBattle(selectedEnemyId);
+    
+    if (battle) {
+        battleRenderer.renderBattle(battle);
+    }
+}
+
+function endBattle(result) {
+    inBattle = false;
+    const battleContainer = document.getElementById('battle-container');
+    const mapContainer = document.getElementById('map');
+    
+    if (battleContainer && mapContainer) {
+        battleContainer.style.display = 'none';
+        mapContainer.parentElement.parentElement.style.display = 'grid';
+    }
+    
+    if (result === 'victory') {
+        playerScore += 200;
+        gameMessage.textContent = '🎉 Você venceu a batalha!';
+        
+        // Remover inimigo do mapa
+        const currentEnemy = enemies.find(e => e.pos === gameState.position);
+        if (currentEnemy) {
+            enemies = enemies.filter(e => e !== currentEnemy);
+        }
+    } else if (result === 'defeat') {
+        isGameOver = true;
+        gameMessage.textContent = '💥 Você foi derrotado na batalha!';
+    } else if (result === 'flee') {
+        gameMessage.textContent = 'Você fugiu da batalha!';
+        // Mover para posição anterior
+        gameState.position = 4;
+    }
+    
     renderGame();
 }
 

@@ -1,0 +1,59 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  @apply box-border;
+}
+
+body {
+  @apply min-h-screen bg-muted text-foreground font-serif;
+}
+
+#root {
+  @apply min-h-screen;
+}
+
+.character-sprite {
+  @apply text-6xl md:text-8xl leading-none;
+}
+
+.stat-bar-custom {
+  @apply w-full h-4 bg-secondary rounded overflow-hidden border border-secondary;
+}
+
+.stat-fill-custom {
+  @apply h-full transition-all duration-300;
+}
+
+.hp-fill {
+  @apply bg-gradient-to-r from-red-500 to-orange-500;
+}
+
+.mp-fill {
+  @apply bg-gradient-to-r from-blue-500 to-cyan-500;
+}
+
+.battle-arena {
+  @apply grid grid-cols-3 gap-4 md:gap-6 items-center p-6 bg-gradient-to-br from-muted/50 to-primary/5 rounded-lg border border-secondary;
+}
+
+.battle-character {
+  @apply flex flex-col gap-3 items-center text-center;
+}
+
+.battle-character.hero-side {
+  @apply md:text-right;
+}
+
+.battle-character.enemy-side {
+  @apply md:text-left;
+}
+
+.skill-button {
+  @apply px-3 py-2 rounded-lg bg-secondary text-secondary-foreground font-medium hover:bg-secondary/80 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm;
+}
+
+.skill-button:hover:not(:disabled) {
+  @apply transform -translate-y-0.5 shadow-md;
+}

@@ -5,6 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Jogo | Acesse sua aventura</title>
         <link rel="stylesheet" href="style.css">
+        <link rel="stylesheet" href="battle-styles.css">
     </head>
 
     <body>
@@ -47,6 +48,7 @@
                     <div>
                         <div class="map-frame scene-3d">
                             <div class="map" id="map" aria-label="Mapa do Vale de Aurora"></div>
+                            <div id="battle-container" style="display:none;"></div>
                         </div>
                         <div class="movement" aria-label="Controles de movimento">
                             <span></span><button type="button" data-move="up" aria-label="Mover para cima">&#8593;</button><span></span>
@@ -71,6 +73,8 @@
                 <div class="mountain mountain-front" aria-hidden="true"></div>
             </aside>
         </main>
+        <script src="battle-system.js"></script>
+        <script src="app.js"></script>
         <script src="app-firebase.js"></script>
     </body>
 </html>
