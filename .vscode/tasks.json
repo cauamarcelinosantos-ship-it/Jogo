@@ -1,0 +1,106 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "🎮 Servidor - Porta 8000",
+      "type": "shell",
+      "command": "node",
+      "args": ["server.js"],
+      "env": {
+        "PORT": "8000"
+      },
+      "isBackground": true,
+      "problemMatcher": {
+        "pattern": {
+          "regexp": "^.*$",
+          "file": 1,
+          "location": 2,
+          "message": 3
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^🎮.*iniciado",
+          "endsPattern": "^🎮.*iniciado"
+        }
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "🎮 Servidor - Porta 3000",
+      "type": "shell",
+      "command": "node",
+      "args": ["server.js"],
+      "env": {
+        "PORT": "3000"
+      },
+      "isBackground": true,
+      "problemMatcher": {
+        "pattern": {
+          "regexp": "^.*$",
+          "file": 1,
+          "location": 2,
+          "message": 3
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^🎮.*iniciado",
+          "endsPattern": "^🎮.*iniciado"
+        }
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "⚛️  React - Instalar e Executar",
+      "type": "shell",
+      "command": "cd react-app && npm install && npm run dev",
+      "isBackground": false,
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "✅ Verificar Instalação",
+      "type": "shell",
+      "command": "bash",
+      "args": ["verify-installation.sh"],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "🚀 Menu de Execução",
+      "type": "shell",
+      "command": "bash",
+      "args": ["start.sh"],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "new"
+      },
+      "problemMatcher": []
+    }
+  ]
+}

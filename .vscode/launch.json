@@ -5,23 +5,58 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Launch Chrome",
+            "name": "🎮 Vale de Aurora - Porta 8000 (Recomendado)",
+            "type": "node",
             "request": "launch",
-            "type": "chrome",
-            "url": "http://localhost:8080",
-            "webRoot": "${workspaceFolder}"
+            "program": "${workspaceFolder}/server.js",
+            "restart": true,
+            "console": "integratedTerminal",
+            "env": {
+                "PORT": "8000",
+                "NODE_ENV": "development"
+            }
+        },
+        {
+            "name": "🎮 Vale de Aurora - Porta 3000",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceFolder}/server.js",
+            "restart": true,
+            "console": "integratedTerminal",
+            "env": {
+                "PORT": "3000",
+                "NODE_ENV": "development"
+            }
+        },
+        {
+            "name": "🎮 Vale de Aurora - Porta 5000",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceFolder}/server.js",
+            "restart": true,
+            "console": "integratedTerminal",
+            "env": {
+                "PORT": "5000",
+                "NODE_ENV": "development"
+            }
+        },
+        {
+            "name": "⚛️  React + Vite - Porta 3000",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceFolder}/react-app/node_modules/.bin/vite",
+            "cwd": "${workspaceFolder}/react-app",
+            "restart": true,
+            "console": "integratedTerminal",
+            "env": {
+                "PORT": "3000",
+                "NODE_ENV": "development"
+            }
         },
         {
             "name": "Launch Chrome",
             "request": "launch",
             "type": "chrome",
-            "url": "http://localhost:8080",
-            "webRoot": "${workspaceFolder}"
-        },
-        {
-            "type": "chrome",
-            "request": "launch",
-            "name": "Iniciar o Chrome em relação a localhost",
             "url": "http://localhost:8080",
             "webRoot": "${workspaceFolder}"
         }

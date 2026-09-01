@@ -1,0 +1,14 @@
+{
+  "recommendations": [
+    "ms-vscode.node-debug2",
+    "ms-vscode.chrome-debug",
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "ritwickdey.liveserver",
+    "simonsimons.dark-plus-syntax",
+    "bradlc.vscode-tailwindcss",
+    "dsznajder.es7-react-js-snippets",
+    "eamodio.gitlens",
+    "GitHub.copilot"
+  ]
+}
