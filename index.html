@@ -10,59 +10,27 @@
 
     <body>
         <main class="game-page">
-            <section class="login-panel" id="login-panel" aria-labelledby="login-title">
-                <div class="brand-lockup"><div class="brand-mark" aria-hidden="true">J</div><strong>Jogo</strong></div>
-                <p class="eyebrow">Login Necessário</p>
-                <h1 id="login-title">Acesse sua aventura</h1>
-                <p class="intro">Conecte com sua conta Google para começar a jogar</p>
-
-                <div class="login-form">
-                    <button class="google-login-btn" id="google-login-btn">
-                        <span aria-hidden="true">🔐</span> Entrar com Google
-                    </button>
-                    <button class="anonymous-login-btn" id="anonymous-login-btn">
-                        Jogar Anonimamente
-                    </button>
-                    <p class="form-message" id="form-message" role="status" aria-live="polite"></p>
-                </div>
-            </section>
-
-            <section class="game-panel" id="game-panel" hidden aria-labelledby="game-title">
-                <header class="game-header">
+            <!-- ===== TELA DE LOGIN ===== -->
+            <section class="login-screen" id="login-panel" aria-labelledby="login-title">
+                <div class="login-container">
                     <div class="brand-lockup"><div class="brand-mark" aria-hidden="true">J</div><strong>Jogo</strong></div>
-                    <button class="logout-button" type="button" id="logout-button">Sair</button>
-                </header>
-                <div class="game-heading">
-                    <div>
-                        <p class="eyebrow">Vale de Aurora</p>
-                        <h1 id="game-title">Encontre os fragmentos.</h1>
-                        <p class="intro" id="game-player"></p>
+                    <p class="eyebrow">Login Necessário</p>
+                    <h1 id="login-title">Acesse sua aventura</h1>
+                    <p class="intro">Conecte com sua conta Google para começar a jogar</p>
+
+                    <div class="login-form">
+                        <button class="google-login-btn" id="google-login-btn">
+                            <span aria-hidden="true">🔐</span> Entrar com Google
+                        </button>
+                        <button class="anonymous-login-btn" id="anonymous-login-btn">
+                            Jogar Anonimamente
+                        </button>
+                        <p class="form-message" id="form-message" role="status" aria-live="polite"></p>
                     </div>
-                    <div class="game-stats" aria-label="Status da aventura">
-                        <div><strong id="energy-value">12</strong><span>energia</span></div>
-                        <div><strong id="fragment-value">0/3</strong><span>fragmentos</span></div>
-                        <div><strong id="score-value">0</strong><span>pontos</span></div>
-                    </div>
-                </div>
-                <div class="game-content">
-                    <div>
-                        <div class="map-frame scene-3d">
-                            <div class="map" id="map" aria-label="Mapa do Vale de Aurora"></div>
-                            <div id="battle-container" style="display:none;"></div>
-                        </div>
-                        <div class="movement" aria-label="Controles de movimento">
-                            <span></span><button type="button" data-move="up" aria-label="Mover para cima">&#8593;</button><span></span>
-                            <button type="button" data-move="left" aria-label="Mover para esquerda">&#8592;</button><button type="button" data-move="down" aria-label="Mover para baixo">&#8595;</button><button type="button" data-move="right" aria-label="Mover para direita">&#8594;</button>
-                        </div>
-                    </div>
-                    <aside class="journal">
-                        <p class="eyebrow">Diário</p>
-                        <p id="game-message">A trilha começa aqui. Explore o vale.</p>
-                        <div class="legend"><span class="legend-player">●</span> Você <span class="legend-fragment">✦</span> Fragmento <span class="legend-portal">◉</span> Portal <span class="legend-enemy">👾</span> Inimigo <span class="legend-powerup">⭐</span> Escudo</div>
-                    </aside>
                 </div>
             </section>
 
+            <!-- ===== ARTE DE FUNDO (LOGIN) ===== -->
             <aside class="login-art" aria-label="Destaque do jogo">
                 <div class="art-copy">
                     <span class="art-tag">Sua próxima aventura</span>
@@ -72,7 +40,58 @@
                 <div class="mountain mountain-back" aria-hidden="true"></div>
                 <div class="mountain mountain-front" aria-hidden="true"></div>
             </aside>
+
+            <!-- ===== TELA DE GAMEPLAY ===== -->
+            <section class="game-screen" id="game-panel" hidden aria-labelledby="game-title">
+                <!-- Header do Jogo -->
+                <header class="game-header">
+                    <div class="brand-lockup"><div class="brand-mark" aria-hidden="true">J</div><strong>Jogo</strong></div>
+                    <button class="logout-button" type="button" id="logout-button">Sair</button>
+                </header>
+
+                <!-- Heading do Jogo -->
+                <div class="game-heading">
+                    <div>
+                        <p class="eyebrow">Vale de Aurora</p>
+                        <h1 id="game-title">Encontre os fragmentos.</h1>
+                        <p class="intro" id="game-player">Jogador</p>
+                    </div>
+                    <div class="game-stats" aria-label="Status da aventura">
+                        <div><strong id="energy-value">12</strong><span>energia</span></div>
+                        <div><strong id="fragment-value">0/3</strong><span>fragmentos</span></div>
+                        <div><strong id="score-value">0</strong><span>pontos</span></div>
+                    </div>
+                </div>
+
+                <!-- Conteúdo do Jogo -->
+                <div class="game-content">
+                    <div>
+                        <!-- Mapa -->
+                        <div class="map-frame scene-3d">
+                            <div class="map" id="map" aria-label="Mapa do Vale de Aurora"></div>
+                            <!-- Container de Combate (oculto até combate) -->
+                            <div id="battle-container" style="display:none;"></div>
+                        </div>
+
+                        <!-- Controles de Movimento -->
+                        <div class="movement" aria-label="Controles de movimento">
+                            <span></span><button type="button" data-move="up" aria-label="Mover para cima">&#8593;</button><span></span>
+                            <button type="button" data-move="left" aria-label="Mover para esquerda">&#8592;</button><button type="button" data-move="down" aria-label="Mover para baixo">&#8595;</button><button type="button" data-move="right" aria-label="Mover para direita">&#8594;</button>
+                        </div>
+                    </div>
+
+                    <!-- Diário (Barra Lateral) -->
+                    <aside class="journal">
+                        <p class="eyebrow">Diário</p>
+                        <p id="game-message">A trilha começa aqui. Explore o vale.</p>
+                        <div class="legend"><span class="legend-player">●</span> Você <span class="legend-fragment">✦</span> Fragmento <span class="legend-portal">◉</span> Portal <span class="legend-enemy">👾</span> Inimigo <span class="legend-powerup">⭐</span> Escudo</div>
+                    </aside>
+                </div>
+            </section>
         </main>
+
+        <!-- Scripts em ordem correta -->
+        <script src="ui-manager.js"></script>
         <script src="battle-system.js"></script>
         <script src="app.js"></script>
         <script src="app-firebase.js"></script>

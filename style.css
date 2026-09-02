@@ -18,24 +18,53 @@ body {
     display: grid;
     grid-template-columns: minmax(360px, 0.8fr) minmax(0, 1.2fr);
     min-height: 100vh;
+    position: relative;
 }
 
-.login-panel {
+/* ===== TELA DE LOGIN ===== */
+.login-screen {
     display: flex;
     flex-direction: column;
     justify-content: center;
     width: min(100%, 500px);
     padding: 48px clamp(28px, 7vw, 96px);
     margin: 0 auto;
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
-.game-panel {
+.login-screen[hidden] {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    pointer-events: none;
+}
+
+.login-container {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+/* ===== TELA DE GAMEPLAY ===== */
+.game-screen {
     display: flex;
     flex-direction: column;
     width: min(100%, 940px);
     min-height: 100vh;
     padding: 32px clamp(28px, 5vw, 72px);
     margin: 0 auto;
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.game-screen[hidden] {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    pointer-events: none;
 }
 
 .session-panel {
@@ -626,4 +655,3 @@ button span {
     0%, 100% { transform: scale(1); }
     50% { transform: scale(1.1); }
 }
-

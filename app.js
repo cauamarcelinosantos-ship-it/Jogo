@@ -83,20 +83,20 @@ function startNewGame() {
         xp: 0,
         xpToNext: 100
     };
-    
+
     enemies = generateEnemies();
     powerUpActive = null;
     isGameWon = false;
     isGameOver = false;
     inBattle = false;
     enemyMoveCounter = 0;
-    
+
     // Inicializar sistema de combate
     if (!battleManager) {
         battleManager = new BattleManager(gameState);
         battleRenderer = new BattleScreenRenderer('battle-container');
         battleRenderer.setBattleManager(battleManager);
-        
+
         // Listeners do sistema de combate
         battleManager.on('onBattleStart', () => {
             const battleContainer = document.getElementById('battle-container');
@@ -106,11 +106,11 @@ function startNewGame() {
                 battleContainer.style.display = 'block';
             }
         });
-        
+
         battleManager.on('onTurn', (battle) => {
             battleRenderer.renderBattle(battle);
         });
-        
+
         battleManager.on('onBattleEnd', (battle) => {
             if (battle.result === 'victory' || battle.result === 'levelUp') {
                 battleRenderer.renderResult(battle, () => {
@@ -128,13 +128,13 @@ function startNewGame() {
                 endBattle('flee');
             }
         });
-        
+
         // Expor globalmente para onclick
         window.battleManager = battleManager;
     } else {
         battleManager.hero = gameState;
     }
-    
+
     renderGame();
     updateScore();
 }
@@ -145,13 +145,13 @@ function generateEnemies() {
     const count = Math.min(1 + gameLevel, 4);
     const enemies = [];
     const forbidden = [4, 8]; // start e portal
-    
+
     for (let i = 0; i < count; i++) {
         let pos;
         do {
             pos = Math.floor(Math.random() * 9);
         } while (forbidden.includes(pos) || enemies.some(e => e.pos === pos));
-        
+
         enemies.push({ pos, moveInterval: config.enemySpeed });
     }
     return enemies;
@@ -160,24 +160,24 @@ function generateEnemies() {
 // ===== MOVIMENTO DE INIMIGOS =====
 function moveEnemies() {
     if (enemyMoveCounter++ % 2 !== 0) return; // Reduz velocidade
-    
+
     enemies.forEach(enemy => {
         const moves = [[-1, 0], [1, 0], [0, -1], [0, 1]];
         const row = Math.floor(enemy.pos / 3);
         const col = enemy.pos % 3;
-        
+
         let moved = false;
         while (!moved) {
             const [dr, dc] = moves[Math.floor(Math.random() * moves.length)];
             const newRow = row + dr;
             const newCol = col + dc;
-            
+
             if (newRow >= 0 && newRow < 3 && newCol >= 0 && newCol < 3) {
                 enemy.pos = newRow * 3 + newCol;
                 moved = true;
             }
         }
-        
+
         // Inimigo capturou o jogador
         if (enemy.pos === gameState.position) {
             isGameOver = true;
@@ -191,7 +191,7 @@ function activatePowerUp() {
     powerUpActive = 'shield';
     gameMessage.textContent = '✨ Escudo ativado! (10 segundos)';
     playerScore += 50;
-    
+
     if (powerUpTimer) clearTimeout(powerUpTimer);
     powerUpTimer = setTimeout(() => {
         powerUpActive = null;
@@ -202,18 +202,18 @@ function activatePowerUp() {
 // ===== RENDERIZAÇÃO DO JOGO =====
 function renderGame() {
     mapElement.innerHTML = '';
-    
+
     mapCells.forEach((cell, index) => {
         const tile = document.createElement('div');
         tile.className = `map-tile ${cell.type}`;
-        
+
         const isPlayer = gameState.position === index;
         const hasEnemy = enemies.some(e => e.pos === index);
-        
+
         if (isPlayer) tile.classList.add('player');
         if (hasEnemy) tile.classList.add('enemy');
         if (cell.type === 'fragment' && gameState.fragments.includes(index)) tile.classList.add('collected');
-        
+
         if (isPlayer) {
             const shield = powerUpActive ? '🛡️' : '';
             tile.innerHTML = `<span class="character" aria-hidden="true"><span class="character-hair"></span><span class="character-face">•</span><span class="character-body"></span></span><span style="position:absolute;top:-15px;font-size:20px;">${shield}</span>`;
@@ -223,11 +223,11 @@ function renderGame() {
             const icon = cell.type === 'fragment' && gameState.fragments.includes(index) ? '·' : cell.icon;
             tile.innerHTML = `<span class="scene-object" aria-hidden="true">${icon}</span>`;
         }
-        
+
         tile.setAttribute('aria-label', isPlayer ? 'Seu personagem está aqui' : `Casa ${index + 1}`);
         mapElement.appendChild(tile);
     });
-    
+
     energyValue.textContent = gameState.energy;
     const config = GAME_CONFIG[gameDifficulty];
     fragmentValue.textContent = `${gameState.fragments.length}/${config.fragmentsNeeded}`;
@@ -236,25 +236,25 @@ function renderGame() {
 // ===== MOVIMENTO DO JOGADOR =====
 function movePlayer(direction) {
     if (!gameState || gameState.energy <= 0 || isGameWon || isGameOver || inBattle) return;
-    
+
     const row = Math.floor(gameState.position / 3);
     const column = gameState.position % 3;
     const moves = { up: [-1, 0], down: [1, 0], left: [0, -1], right: [0, 1] };
-    
+
     if (!moves[direction]) return;
-    
+
     const [rowChange, columnChange] = moves[direction];
     const nextRow = row + rowChange;
     const nextColumn = column + columnChange;
-    
+
     if (nextRow < 0 || nextRow > 2 || nextColumn < 0 || nextColumn > 2) {
         gameMessage.textContent = 'A montanha bloqueia esse caminho.';
         return;
     }
-    
+
     gameState.position = nextRow * 3 + nextColumn;
     gameState.energy -= 1;
-    
+
     // Verificar inimigo
     const enemyAtPosition = enemies.find(e => e.pos === gameState.position);
     if (enemyAtPosition) {
@@ -263,17 +263,17 @@ function movePlayer(direction) {
         renderGame();
         return;
     }
-    
+
     // Remover escudo se colidiu com inimigo
     if (powerUpActive && enemies.some(e => e.pos === gameState.position)) {
         powerUpActive = null;
         gameMessage.textContent = 'Escudo quebrado! Cuidado!';
         playerScore += 100;
     }
-    
+
     const cell = mapCells[gameState.position];
     const config = GAME_CONFIG[gameDifficulty];
-    
+
     if (cell.type === 'fragment' && !gameState.fragments.includes(gameState.position)) {
         gameState.fragments.push(gameState.position);
         playerScore += 100;
@@ -290,7 +290,7 @@ function movePlayer(direction) {
     } else {
         gameMessage.textContent = 'A trilha segue silenciosa. Continue explorando.';
     }
-    
+
     moveEnemies();
     saveGameState();
     renderGame();
@@ -299,35 +299,48 @@ function movePlayer(direction) {
 // ===== SISTEMA DE COMBATE =====
 function startBattle(enemy) {
     if (!battleManager) return;
-    
+
+    console.log('⚔️ Iniciando combate...');
     inBattle = true;
-    const enemyType = Object.keys(ENEMIES_DATABASE).find(key => 
+    const enemyType = Object.keys(ENEMIES_DATABASE).find(key =>
         ENEMIES_DATABASE[key].sprite === '👾' || Math.random() > 0.5
     );
-    
+
     // Selecionar inimigo aleatório
     const selectedEnemyId = ENEMIES_DATABASE[Math.floor(Math.random() * ENEMIES_DATABASE.length)].id;
     const battle = battleManager.startBattle(selectedEnemyId);
-    
+
     if (battle) {
         battleRenderer.renderBattle(battle);
+
+        // Usar UIManager para mostrar tela de combate
+        if (typeof uiManager !== 'undefined') {
+            const battleHTML = document.querySelector('#battle-container').innerHTML;
+            uiManager.showBattleScreen(battleHTML);
+        }
     }
 }
 
 function endBattle(result) {
+    console.log('🎮 Finalizando combate com resultado:', result);
     inBattle = false;
     const battleContainer = document.getElementById('battle-container');
     const mapContainer = document.getElementById('map');
-    
+
     if (battleContainer && mapContainer) {
         battleContainer.style.display = 'none';
         mapContainer.parentElement.parentElement.style.display = 'grid';
+
+        // Usar UIManager para voltar à tela de gameplay
+        if (typeof uiManager !== 'undefined') {
+            uiManager.showGameScreenAfterBattle();
+        }
     }
-    
+
     if (result === 'victory') {
         playerScore += 200;
         gameMessage.textContent = '🎉 Você venceu a batalha!';
-        
+
         // Remover inimigo do mapa
         const currentEnemy = enemies.find(e => e.pos === gameState.position);
         if (currentEnemy) {
@@ -341,7 +354,7 @@ function endBattle(result) {
         // Mover para posição anterior
         gameState.position = 4;
     }
-    
+
     renderGame();
 }
 
@@ -350,7 +363,7 @@ function completeLevel() {
     playerScore += 500 + (gameLevel * 100);
     gameMessage.textContent = `🎉 Nível ${gameLevel} concluído! Próximo nível...`;
     gameLevel++;
-    
+
     setTimeout(() => {
         if (gameLevel <= 3) {
             startNewGame();

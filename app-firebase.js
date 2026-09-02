@@ -53,7 +53,7 @@ async function initFirebase() {
         };
 
         // Detectar se credenciais são placeholder
-        const isPlaceholder = firebaseConfig.apiKey.includes('DEMO') || 
+        const isPlaceholder = firebaseConfig.apiKey.includes('DEMO') ||
                             firebaseConfig.authDomain.includes('seu-projeto') ||
                             firebaseConfig.projectId === 'seu-projeto';
 
@@ -98,9 +98,9 @@ async function initFirebase() {
                 console.error('❌ Erro ao fazer login com Google:', error);
                 console.error('Código do erro:', error.code);
                 console.error('Mensagem:', error.message);
-                
+
                 let mensagem = 'Erro ao conectar com Google. ';
-                
+
                 if (error.code === 'auth/popup-blocked') {
                     mensagem += 'Pop-up foi bloqueado. Permita pop-ups para este site.';
                 } else if (error.code === 'auth/unauthorized-domain') {
@@ -112,7 +112,7 @@ async function initFirebase() {
                 } else {
                     mensagem += error.message;
                 }
-                
+
                 showMessage(mensagem);
                 googleLoginBtn.disabled = false;
             }
@@ -146,20 +146,49 @@ async function initFirebase() {
 
 // ===== FUNÇÕES DE MENSAGEM =====
 function showMessage(text, isSuccess = false) {
-    formMessage.textContent = text;
-    formMessage.classList.toggle('success', isSuccess);
+    if (uiManager) {
+        uiManager.showFormMessage(text, isSuccess);
+    }
 }
 
+/**
+ * Mostra a tela de login
+ */
 function showLogin() {
-    loginPanel.hidden = false;
-    gamePanel.hidden = true;
+    console.log('🔐 Exibindo tela de login...');
+    if (uiManager) {
+        uiManager.showLoginScreen();
+    }
 }
 
-// ===== INICIAR FLUXO DE JOGO =====
+/**
+ * Inicia o fluxo de jogo (mostra tela de jogo)
+ */
 function startGameFlow() {
-    loginPanel.hidden = true;
-    gamePanel.hidden = false;
+    const playerName = currentUser?.displayName || 'Jogador Anônimo';
+    console.log('🎮 Iniciando jogo para ' + playerName);
+
+    if (uiManager) {
+        uiManager.showGameScreen(playerName);
+    }
+
     showGameModeSelector();
+}
+
+/**
+ * Função para logout do Firebase
+ */
+async function signOutFirebase() {
+    try {
+        if (typeof firebase !== 'undefined' && firebase.auth) {
+            await firebase.auth().signOut();
+        }
+        currentUser = null;
+        showLogin();
+    } catch (error) {
+        console.error('Erro ao fazer logout:', error);
+        showLogin();
+    }
 }
 
 // ===== SELETOR DE MODO DE JOGO =====
@@ -193,10 +222,10 @@ function saveGameState() {
 
 async function saveScoreToFirestore() {
     if (!db || !currentUser) return;
-    
+
     try {
         const { collection, addDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js');
-        
+
         const scoresRef = collection(db, 'scores');
         await addDoc(scoresRef, {
             userId: currentUser.uid,
@@ -236,13 +265,13 @@ function generateEnemies() {
     const count = Math.min(1 + gameLevel, 4);
     const enemies = [];
     const forbidden = [4, 8];
-    
+
     for (let i = 0; i < count; i++) {
         let pos;
         do {
             pos = Math.floor(Math.random() * 9);
         } while (forbidden.includes(pos) || enemies.some(e => e.pos === pos));
-        
+
         enemies.push({ pos, moveInterval: config.enemySpeed });
     }
     return enemies;
@@ -251,24 +280,24 @@ function generateEnemies() {
 // ===== MOVIMENTO DE INIMIGOS =====
 function moveEnemies() {
     if (enemyMoveCounter++ % 2 !== 0) return;
-    
+
     enemies.forEach(enemy => {
         const moves = [[-1, 0], [1, 0], [0, -1], [0, 1]];
         const row = Math.floor(enemy.pos / 3);
         const col = enemy.pos % 3;
-        
+
         let moved = false;
         while (!moved) {
             const [dr, dc] = moves[Math.floor(Math.random() * moves.length)];
             const newRow = row + dr;
             const newCol = col + dc;
-            
+
             if (newRow >= 0 && newRow < 3 && newCol >= 0 && newCol < 3) {
                 enemy.pos = newRow * 3 + newCol;
                 moved = true;
             }
         }
-        
+
         if (enemy.pos === gameState.position) {
             isGameOver = true;
             gameMessage.textContent = '💥 Você foi capturado! Fim de jogo.';
@@ -281,7 +310,7 @@ function activatePowerUp() {
     powerUpActive = 'shield';
     gameMessage.textContent = '✨ Escudo ativado! (10 segundos)';
     playerScore += 50;
-    
+
     if (powerUpTimer) clearTimeout(powerUpTimer);
     powerUpTimer = setTimeout(() => {
         powerUpActive = null;
@@ -292,18 +321,18 @@ function activatePowerUp() {
 // ===== RENDERIZAÇÃO DO JOGO =====
 function renderGame() {
     mapElement.innerHTML = '';
-    
+
     mapCells.forEach((cell, index) => {
         const tile = document.createElement('div');
         tile.className = `map-tile ${cell.type}`;
-        
+
         const isPlayer = gameState.position === index;
         const hasEnemy = enemies.some(e => e.pos === index);
-        
+
         if (isPlayer) tile.classList.add('player');
         if (hasEnemy) tile.classList.add('enemy');
         if (cell.type === 'fragment' && gameState.fragments.includes(index)) tile.classList.add('collected');
-        
+
         if (isPlayer) {
             const shield = powerUpActive ? '🛡️' : '';
             tile.innerHTML = `<span class="character" aria-hidden="true"><span class="character-hair"></span><span class="character-face">•</span><span class="character-body"></span></span><span style="position:absolute;top:-15px;font-size:20px;">${shield}</span>`;
@@ -313,11 +342,11 @@ function renderGame() {
             const icon = cell.type === 'fragment' && gameState.fragments.includes(index) ? '·' : cell.icon;
             tile.innerHTML = `<span class="scene-object" aria-hidden="true">${icon}</span>`;
         }
-        
+
         tile.setAttribute('aria-label', isPlayer ? 'Seu personagem está aqui' : `Casa ${index + 1}`);
         mapElement.appendChild(tile);
     });
-    
+
     energyValue.textContent = gameState.energy;
     const config = GAME_CONFIG[gameDifficulty];
     fragmentValue.textContent = `${gameState.fragments.length}/${config.fragmentsNeeded}`;
@@ -326,41 +355,41 @@ function renderGame() {
 // ===== MOVIMENTO DO JOGADOR =====
 function movePlayer(direction) {
     if (!gameState || gameState.energy <= 0 || isGameWon || isGameOver) return;
-    
+
     const row = Math.floor(gameState.position / 3);
     const column = gameState.position % 3;
     const moves = { up: [-1, 0], down: [1, 0], left: [0, -1], right: [0, 1] };
-    
+
     if (!moves[direction]) return;
-    
+
     const [rowChange, columnChange] = moves[direction];
     const nextRow = row + rowChange;
     const nextColumn = column + columnChange;
-    
+
     if (nextRow < 0 || nextRow > 2 || nextColumn < 0 || nextColumn > 2) {
         gameMessage.textContent = 'A montanha bloqueia esse caminho.';
         return;
     }
-    
+
     gameState.position = nextRow * 3 + nextColumn;
     gameState.energy -= 1;
-    
+
     if (!powerUpActive && enemies.some(e => e.pos === gameState.position)) {
         isGameOver = true;
         gameMessage.textContent = '💥 Você foi capturado! Fim de jogo.';
         renderGame();
         return;
     }
-    
+
     if (powerUpActive && enemies.some(e => e.pos === gameState.position)) {
         powerUpActive = null;
         gameMessage.textContent = 'Escudo quebrado! Cuidado!';
         playerScore += 100;
     }
-    
+
     const cell = mapCells[gameState.position];
     const config = GAME_CONFIG[gameDifficulty];
-    
+
     if (cell.type === 'fragment' && !gameState.fragments.includes(gameState.position)) {
         gameState.fragments.push(gameState.position);
         playerScore += 100;
@@ -377,7 +406,7 @@ function movePlayer(direction) {
     } else {
         gameMessage.textContent = 'A trilha segue silenciosa. Continue explorando.';
     }
-    
+
     moveEnemies();
     saveGameState();
     renderGame();
@@ -388,7 +417,7 @@ function completeLevel() {
     playerScore += 500 + (gameLevel * 100);
     gameMessage.textContent = `🎉 Nível ${gameLevel} concluído! Próximo nível...`;
     gameLevel++;
-    
+
     setTimeout(() => {
         if (gameLevel <= 3) {
             startNewGame();
