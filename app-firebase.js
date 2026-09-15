@@ -4,6 +4,13 @@ const GAME_CONFIG = {
     hard: { maxEnergy: 8, fragmentsNeeded: 5, enemySpeed: 1 }
 };
 
+// ===== CONFIGURAÇÃO DO MAPA =====
+const mapCells = [
+    { icon: '✦', type: 'fragment' }, { icon: '🌲', type: 'forest' }, { icon: '✦', type: 'fragment' },
+    { icon: '⌁', type: 'water' },    { icon: '●', type: 'start' },    { icon: '⭐', type: 'powerup' },
+    { icon: '✦', type: 'fragment' }, { icon: '🌲', type: 'forest' }, { icon: '◉', type: 'portal' }
+];
+
 // ===== ELEMENTOS DO DOM =====
 const loginPanel = document.querySelector('#login-panel');
 const gamePanel = document.querySelector('#game-panel');
@@ -30,18 +37,41 @@ let enemies = [];
 let enemyMoveCounter = 0;
 let currentUser = null;
 let db = null;
+let auth = null;
 
-// ===== CONFIGURAÇÃO DO MAPA =====
-const mapCells = [
-    { icon: '✦', type: 'fragment' }, { icon: '🌲', type: 'forest' }, { icon: '✦', type: 'fragment' },
-    { icon: '⌁', type: 'water' }, { icon: '●', type: 'start' }, { icon: '⭐', type: 'powerup' },
-    { icon: '✦', type: 'fragment' }, { icon: '🌲', type: 'forest' }, { icon: '◉', type: 'portal' }
-];
+// ===== COMPONENTE DE INTERFACE (FALLBACK) =====
+const UI = {
+    showMessage(text, isSuccess = false) {
+        if (typeof uiManager !== 'undefined' && uiManager?.showFormMessage) {
+            uiManager.showFormMessage(text, isSuccess);
+        } else if (formMessage) {
+            formMessage.textContent = text;
+            formMessage.style.color = isSuccess ? '#2ecc71' : '#e74c3c';
+        } else {
+            console.log(`[UI]: ${text}`);
+        }
+    },
+    showLogin() {
+        if (typeof uiManager !== 'undefined' && uiManager?.showLoginScreen) {
+            uiManager.showLoginScreen();
+        } else if (loginPanel && gamePanel) {
+            loginPanel.hidden = false;
+            gamePanel.hidden = true;
+        }
+    },
+    showGame(playerName) {
+        if (typeof uiManager !== 'undefined' && uiManager?.showGameScreen) {
+            uiManager.showGameScreen(playerName);
+        } else if (loginPanel && gamePanel) {
+            loginPanel.hidden = true;
+            gamePanel.hidden = false;
+        }
+    }
+};
 
-// ===== INICIALIZAR FIREBASE =====
+// ===== INICIALIZAÇÃO DO FIREBASE =====
 async function initFirebase() {
     try {
-        // Configuração do Firebase com suas credenciais
         const firebaseConfig = {
             apiKey: "AIzaSyARdKWyJt_wMbCDtaHHq7rd3IUOiU_-jLM",
             authDomain: "jogo-rpg-9397e.firebaseapp.com",
@@ -52,194 +82,103 @@ async function initFirebase() {
             measurementId: "G-TK52NLJ4VN"
         };
 
-        // Detectar se credenciais são placeholder
         const isPlaceholder = firebaseConfig.apiKey.includes('DEMO') ||
-                            firebaseConfig.authDomain.includes('seu-projeto') ||
-                            firebaseConfig.projectId === 'seu-projeto';
+                              firebaseConfig.authDomain.includes('seu-projeto') ||
+                              firebaseConfig.projectId === 'seu-projeto';
 
         if (isPlaceholder) {
-            console.warn('⚠️ Firebase não configurado. Usando modo OFFLINE.');
-            currentUser = { uid: 'offline-' + Date.now(), displayName: 'Jogador Local' };
-            db = null;
-            formMessage.textContent = '📱 Modo Offline - Progresso salvo localmente';
-            setTimeout(() => startGameFlow(), 500);
+            console.warn('⚠️ Firebase não configurado. Modo OFFLINE ativo.');
+            setOfflineMode();
             return;
         }
 
-        const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js');
-        const { getAuth, signInWithPopup, GoogleAuthProvider, signInAnonymously, signOut, onAuthStateChanged } = await import('https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js');
-        const { getFirestore } = await import('https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js');
+        const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
+        const { getAuth, signInWithPopup, GoogleAuthProvider, signInAnonymously, signOut, onAuthStateChanged } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js');
+        const { getFirestore } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
 
         const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
+        auth = getAuth(app);
         db = getFirestore(app);
 
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 currentUser = user;
-                showMessage(`Bem-vindo, ${user.displayName || 'Jogador'}!`, true);
+                UI.showMessage(`Bem-vindo, ${user.displayName || 'Jogador'}!`, true);
                 setTimeout(() => startGameFlow(), 1000);
             } else {
                 currentUser = null;
-                showLogin();
+                UI.showLogin();
             }
         });
 
-        googleLoginBtn.addEventListener('click', async () => {
+        // Listeners de Autenticação
+        googleLoginBtn?.addEventListener('click', async () => {
             googleLoginBtn.disabled = true;
             try {
-                console.log('🔐 Iniciando login com Google...');
                 const provider = new GoogleAuthProvider();
                 provider.addScope('profile');
                 provider.addScope('email');
-                const result = await signInWithPopup(auth, provider);
-                console.log('✅ Login Google bem-sucedido!', result.user);
+                await signInWithPopup(auth, provider);
             } catch (error) {
-                console.error('❌ Erro ao fazer login com Google:', error);
-                console.error('Código do erro:', error.code);
-                console.error('Mensagem:', error.message);
-
-                let mensagem = 'Erro ao conectar com Google. ';
-
-                if (error.code === 'auth/popup-blocked') {
-                    mensagem += 'Pop-up foi bloqueado. Permita pop-ups para este site.';
-                } else if (error.code === 'auth/unauthorized-domain') {
-                    mensagem += 'Domínio não autorizado. Configure em Firebase Console > Auth > Settings';
-                } else if (error.code === 'auth/operation-not-allowed') {
-                    mensagem += 'Google não está habilitado em Firebase Console.';
-                } else if (error.code === 'auth/invalid-api-key') {
-                    mensagem += 'Credenciais Firebase inválidas. Verifique apiKey.';
-                } else {
-                    mensagem += error.message;
-                }
-
-                showMessage(mensagem);
+                console.error('❌ Erro no login Google:', error);
+                UI.showMessage(getAuthErrorMessage(error));
                 googleLoginBtn.disabled = false;
             }
         });
 
-        anonymousLoginBtn.addEventListener('click', async () => {
+        anonymousLoginBtn?.addEventListener('click', async () => {
             anonymousLoginBtn.disabled = true;
             try {
                 await signInAnonymously(auth);
             } catch (error) {
-                console.error('Erro ao fazer login anônimo:', error);
-                showMessage('Erro ao conectar. Tente novamente.');
+                console.error('❌ Erro no login anônimo:', error);
+                UI.showMessage('Erro ao conectar de forma anônima.');
                 anonymousLoginBtn.disabled = false;
             }
         });
 
-        logoutButton.addEventListener('click', async () => {
-            if (confirm('Deseja sair e voltar ao login?')) {
+        logoutButton?.addEventListener('click', async () => {
+            if (confirm('Deseja sair e voltar ao menu principal?')) {
                 await signOut(auth);
             }
         });
 
     } catch (error) {
-        console.error('Erro ao inicializar Firebase:', error);
-        currentUser = { uid: 'offline-' + Date.now(), displayName: 'Jogador Local' };
-        db = null;
-        showMessage('🔌 Modo Offline - Jogo sem conexão com servidor');
-        setTimeout(() => startGameFlow(), 1000);
+        console.error('❌ Erro na inicialização do Firebase:', error);
+        setOfflineMode();
     }
 }
 
-// ===== FUNÇÕES DE MENSAGEM =====
-function showMessage(text, isSuccess = false) {
-    if (uiManager) {
-        uiManager.showFormMessage(text, isSuccess);
+function setOfflineMode() {
+    currentUser = { uid: `offline-${Date.now()}`, displayName: 'Jogador Local' };
+    db = null;
+    UI.showMessage('📱 Modo Offline - Progresso salvo localmente');
+    setTimeout(() => startGameFlow(), 800);
+}
+
+function getAuthErrorMessage(error) {
+    switch (error.code) {
+        case 'auth/popup-blocked': return 'Pop-up bloqueado pelo navegador.';
+        case 'auth/unauthorized-domain': return 'Domínio não autorizado no Firebase Console.';
+        case 'auth/operation-not-allowed': return 'Provedor de login não ativado.';
+        case 'auth/invalid-api-key': return 'Chave de API do Firebase inválida.';
+        default: return `Erro de conexão: ${error.message}`;
     }
 }
 
-/**
- * Mostra a tela de login
- */
-function showLogin() {
-    console.log('🔐 Exibindo tela de login...');
-    if (uiManager) {
-        uiManager.showLoginScreen();
-    }
-}
-
-/**
- * Inicia o fluxo de jogo (mostra tela de jogo)
- */
+// ===== FLUXO E ESTADO DO JOGO =====
 function startGameFlow() {
     const playerName = currentUser?.displayName || 'Jogador Anônimo';
-    console.log('🎮 Iniciando jogo para ' + playerName);
-
-    if (uiManager) {
-        uiManager.showGameScreen(playerName);
-    }
-
+    UI.showGame(playerName);
     showGameModeSelector();
 }
 
-/**
- * Função para logout do Firebase
- */
-async function signOutFirebase() {
-    try {
-        if (typeof firebase !== 'undefined' && firebase.auth) {
-            await firebase.auth().signOut();
-        }
-        currentUser = null;
-        showLogin();
-    } catch (error) {
-        console.error('Erro ao fazer logout:', error);
-        showLogin();
-    }
-}
-
-// ===== SELETOR DE MODO DE JOGO =====
 function showGameModeSelector() {
     const modeChoice = prompt('Escolha o modo de jogo:\n1 = Normal\n2 = Difícil', '1');
     gameDifficulty = modeChoice === '2' ? 'hard' : 'normal';
     gameLevel = 1;
     playerScore = 0;
     startNewGame();
-}
-
-// ===== INICIALIZAÇÃO DO JOGO =====
-function getGameState() {
-    try {
-        const key = `jogo-progress-${currentUser?.uid || 'offline'}`;
-        const saved = JSON.parse(localStorage.getItem(key) || 'null');
-        if (saved && Number.isInteger(saved.position) && Number.isInteger(saved.energy) && Array.isArray(saved.fragments)) {
-            return saved;
-        }
-    } catch (error) {
-        console.warn('Progresso inválido; uma nova aventura será iniciada.', error);
-    }
-    const config = GAME_CONFIG[gameDifficulty];
-    return { position: 4, energy: config.maxEnergy, fragments: [] };
-}
-
-function saveGameState() {
-    const key = `jogo-progress-${currentUser?.uid || 'offline'}`;
-    localStorage.setItem(key, JSON.stringify(gameState));
-}
-
-async function saveScoreToFirestore() {
-    if (!db || !currentUser) return;
-
-    try {
-        const { collection, addDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js');
-
-        const scoresRef = collection(db, 'scores');
-        await addDoc(scoresRef, {
-            userId: currentUser.uid,
-            userName: currentUser.displayName || 'Anônimo',
-            score: playerScore,
-            difficulty: gameDifficulty,
-            level: gameLevel,
-            timestamp: serverTimestamp()
-        });
-
-        console.log(`✓ Pontuação ${playerScore} salva no Firebase!`);
-    } catch (error) {
-        console.error('Erro ao salvar pontuação:', error);
-    }
 }
 
 function startNewGame() {
@@ -259,25 +198,46 @@ function startNewGame() {
     updateScore();
 }
 
-// ===== GERAÇÃO DE INIMIGOS =====
+function saveGameState() {
+    const key = `jogo-progress-${currentUser?.uid || 'offline'}`;
+    localStorage.setItem(key, JSON.stringify(gameState));
+}
+
+async function salvarPontuacao(nome, pontos) {
+    if (!db || !currentUser) return;
+
+    try {
+        const { collection, addDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+        await addDoc(collection(db, 'placares'), {
+            userId: currentUser.uid,
+            nome: nome || currentUser.displayName || 'Anônimo',
+            pontos: pontos,
+            dificuldade: gameDifficulty,
+            nivel: gameLevel,
+            data: serverTimestamp()
+        });
+        console.log(`✅ Pontuação de ${pontos} salva no Firestore!`);
+    } catch (error) {
+        console.error('❌ Erro ao salvar pontuação:', error);
+    }
+}
+
+// ===== INIMIGOS E PODERES =====
 function generateEnemies() {
     const config = GAME_CONFIG[gameDifficulty];
     const count = Math.min(1 + gameLevel, 4);
-    const enemies = [];
+    const generated = [];
     const forbidden = [4, 8];
 
-    for (let i = 0; i < count; i++) {
-        let pos;
-        do {
-            pos = Math.floor(Math.random() * 9);
-        } while (forbidden.includes(pos) || enemies.some(e => e.pos === pos));
-
-        enemies.push({ pos, moveInterval: config.enemySpeed });
+    while (generated.length < count) {
+        const pos = Math.floor(Math.random() * 9);
+        if (!forbidden.includes(pos) && !generated.some(e => e.pos === pos)) {
+            generated.push({ pos, moveInterval: config.enemySpeed });
+        }
     }
-    return enemies;
+    return generated;
 }
 
-// ===== MOVIMENTO DE INIMIGOS =====
 function moveEnemies() {
     if (enemyMoveCounter++ % 2 !== 0) return;
 
@@ -287,7 +247,9 @@ function moveEnemies() {
         const col = enemy.pos % 3;
 
         let moved = false;
-        while (!moved) {
+        let attempts = 0;
+        while (!moved && attempts < 10) {
+            attempts++;
             const [dr, dc] = moves[Math.floor(Math.random() * moves.length)];
             const newRow = row + dr;
             const newCol = col + dc;
@@ -298,113 +260,85 @@ function moveEnemies() {
             }
         }
 
-        if (enemy.pos === gameState.position) {
+        if (enemy.pos === gameState.position && !powerUpActive) {
             isGameOver = true;
-            gameMessage.textContent = '💥 Você foi capturado! Fim de jogo.';
+            if (gameMessage) gameMessage.textContent = '💥 Você foi capturado! Fim de jogo.';
         }
     });
 }
 
-// ===== SISTEMA DE PODER-UP =====
 function activatePowerUp() {
     powerUpActive = 'shield';
-    gameMessage.textContent = '✨ Escudo ativado! (10 segundos)';
+    if (gameMessage) gameMessage.textContent = '✨ Escudo ativado! (10 segundos)';
     playerScore += 50;
 
     if (powerUpTimer) clearTimeout(powerUpTimer);
     powerUpTimer = setTimeout(() => {
         powerUpActive = null;
-        gameMessage.textContent = 'Escudo expirou.';
+        if (gameMessage) gameMessage.textContent = 'Escudo expirou.';
+        renderGame();
     }, 10000);
 }
 
-// ===== RENDERIZAÇÃO DO JOGO =====
-function renderGame() {
-    mapElement.innerHTML = '';
-
-    mapCells.forEach((cell, index) => {
-        const tile = document.createElement('div');
-        tile.className = `map-tile ${cell.type}`;
-
-        const isPlayer = gameState.position === index;
-        const hasEnemy = enemies.some(e => e.pos === index);
-
-        if (isPlayer) tile.classList.add('player');
-        if (hasEnemy) tile.classList.add('enemy');
-        if (cell.type === 'fragment' && gameState.fragments.includes(index)) tile.classList.add('collected');
-
-        if (isPlayer) {
-            const shield = powerUpActive ? '🛡️' : '';
-            tile.innerHTML = `<span class="character" aria-hidden="true"><span class="character-hair"></span><span class="character-face">•</span><span class="character-body"></span></span><span style="position:absolute;top:-15px;font-size:20px;">${shield}</span>`;
-        } else if (hasEnemy) {
-            tile.innerHTML = '<span class="scene-object" aria-hidden="true">👾</span>';
-        } else {
-            const icon = cell.type === 'fragment' && gameState.fragments.includes(index) ? '·' : cell.icon;
-            tile.innerHTML = `<span class="scene-object" aria-hidden="true">${icon}</span>`;
-        }
-
-        tile.setAttribute('aria-label', isPlayer ? 'Seu personagem está aqui' : `Casa ${index + 1}`);
-        mapElement.appendChild(tile);
-    });
-
-    energyValue.textContent = gameState.energy;
-    const config = GAME_CONFIG[gameDifficulty];
-    fragmentValue.textContent = `${gameState.fragments.length}/${config.fragmentsNeeded}`;
-}
-
-// ===== MOVIMENTO DO JOGADOR =====
+// ===== MOVIMENTAÇÃO E REGRAS DO JOGADOR =====
 function movePlayer(direction) {
     if (!gameState || gameState.energy <= 0 || isGameWon || isGameOver) return;
 
     const row = Math.floor(gameState.position / 3);
-    const column = gameState.position % 3;
+    const col = gameState.position % 3;
     const moves = { up: [-1, 0], down: [1, 0], left: [0, -1], right: [0, 1] };
 
     if (!moves[direction]) return;
 
-    const [rowChange, columnChange] = moves[direction];
-    const nextRow = row + rowChange;
-    const nextColumn = column + columnChange;
+    const [dr, dc] = moves[direction];
+    const nextRow = row + dr;
+    const nextCol = col + dc;
 
-    if (nextRow < 0 || nextRow > 2 || nextColumn < 0 || nextColumn > 2) {
-        gameMessage.textContent = 'A montanha bloqueia esse caminho.';
+    if (nextRow < 0 || nextRow > 2 || nextCol < 0 || nextCol > 2) {
+        if (gameMessage) gameMessage.textContent = 'A montanha bloqueia esse caminho.';
         return;
     }
 
-    gameState.position = nextRow * 3 + nextColumn;
+    gameState.position = nextRow * 3 + nextCol;
     gameState.energy -= 1;
 
-    if (!powerUpActive && enemies.some(e => e.pos === gameState.position)) {
-        isGameOver = true;
-        gameMessage.textContent = '💥 Você foi capturado! Fim de jogo.';
-        renderGame();
-        return;
+    // Colisão com Inimigos
+    if (enemies.some(e => e.pos === gameState.position)) {
+        if (powerUpActive) {
+            powerUpActive = null;
+            playerScore += 100;
+            if (gameMessage) gameMessage.textContent = '🛡️ Escudo absorveu o impacto!';
+        } else {
+            isGameOver = true;
+            if (gameMessage) gameMessage.textContent = '💥 Você foi capturado! Fim de jogo.';
+            renderGame();
+            return;
+        }
     }
 
-    if (powerUpActive && enemies.some(e => e.pos === gameState.position)) {
-        powerUpActive = null;
-        gameMessage.textContent = 'Escudo quebrado! Cuidado!';
-        playerScore += 100;
-    }
-
+    // Interações com Celulas
     const cell = mapCells[gameState.position];
     const config = GAME_CONFIG[gameDifficulty];
 
     if (cell.type === 'fragment' && !gameState.fragments.includes(gameState.position)) {
         gameState.fragments.push(gameState.position);
         playerScore += 100;
-        gameMessage.textContent = 'Você encontrou um fragmento de Aurora!';
+        if (gameMessage) gameMessage.textContent = '✦ Você encontrou um fragmento!';
     } else if (cell.type === 'powerup' && !powerUpActive) {
         activatePowerUp();
-    } else if (cell.type === 'portal' && gameState.fragments.length < config.fragmentsNeeded) {
-        gameMessage.textContent = `O portal está adormecido. Faltam ${config.fragmentsNeeded - gameState.fragments.length} fragmentos.`;
-    } else if (gameState.fragments.length === config.fragmentsNeeded && cell.type === 'portal') {
-        completeLevel();
+    } else if (cell.type === 'portal') {
+        if (gameState.fragments.length < config.fragmentsNeeded) {
+            const faltam = config.fragmentsNeeded - gameState.fragments.length;
+            if (gameMessage) gameMessage.textContent = `O portal exige mais ${faltam} fragmento(s).`;
+        } else {
+            completeLevel();
+            return;
+        }
     } else if (gameState.energy === 0) {
         isGameOver = true;
-        gameMessage.textContent = 'Sua energia acabou. Fim de jogo.';
+        if (gameMessage) gameMessage.textContent = 'Sua energia acabou. Fim de jogo.';
     } else {
-        gameMessage.textContent = 'A trilha segue silenciosa. Continue explorando.';
+        if (gameMessage) gameMessage.textContent = 'A trilha segue silenciosa...';
     }
 
     moveEnemies();
@@ -412,10 +346,9 @@ function movePlayer(direction) {
     renderGame();
 }
 
-// ===== COMPLETAR NÍVEL =====
 function completeLevel() {
     playerScore += 500 + (gameLevel * 100);
-    gameMessage.textContent = `🎉 Nível ${gameLevel} concluído! Próximo nível...`;
+    if (gameMessage) gameMessage.textContent = `🎉 Nível ${gameLevel} concluído!`;
     gameLevel++;
 
     setTimeout(() => {
@@ -424,38 +357,72 @@ function completeLevel() {
         } else {
             winGame();
         }
-    }, 2000);
+    }, 1800);
 }
 
-// ===== VITÓRIA FINAL =====
 function winGame() {
     isGameWon = true;
     playerScore += 1000;
-    gameMessage.textContent = '🏆 Você venceu a aventura completa! Parabéns!';
-    saveScoreToFirestore();
+    if (gameMessage) gameMessage.textContent = '🏆 Você venceu a aventura completa!';
+    salvarPontuacao(currentUser?.displayName, playerScore);
     updateScore();
 }
 
-// ===== ATUALIZAR PONTUAÇÃO =====
+// ===== RENDERIZAÇÃO E UI =====
+function renderGame() {
+    if (!mapElement) return;
+    mapElement.innerHTML = '';
+
+    mapCells.forEach((cell, index) => {
+        const tile = document.createElement('div');
+        tile.className = `map-tile ${cell.type}`;
+
+        const isPlayer = gameState.position === index;
+        const hasEnemy = enemies.some(e => e.pos === index);
+        const isCollected = cell.type === 'fragment' && gameState.fragments.includes(index);
+
+        if (isPlayer) tile.classList.add('player');
+        if (hasEnemy) tile.classList.add('enemy');
+        if (isCollected) tile.classList.add('collected');
+
+        if (isPlayer) {
+            const shield = powerUpActive ? '🛡️' : '';
+            tile.innerHTML = `<span class="character" aria-hidden="true"><span class="character-face">🧙‍♂️</span></span><span style="position:absolute;top:-15px;">${shield}</span>`;
+        } else if (hasEnemy) {
+            tile.innerHTML = '<span class="scene-object" aria-hidden="true">👾</span>';
+        } else {
+            const icon = isCollected ? '·' : cell.icon;
+            tile.innerHTML = `<span class="scene-object" aria-hidden="true">${icon}</span>`;
+        }
+
+        mapElement.appendChild(tile);
+    });
+
+    const config = GAME_CONFIG[gameDifficulty];
+    if (energyValue) energyValue.textContent = gameState.energy;
+    if (fragmentValue) fragmentValue.textContent = `${gameState.fragments.length}/${config.fragmentsNeeded}`;
+    updateScore();
+}
+
 function updateScore() {
     const scoreDisplay = document.querySelector('#score-value');
     if (scoreDisplay) scoreDisplay.textContent = playerScore;
 }
 
-// ===== EVENT LISTENERS - MOVIMENTO =====
+// ===== CONTROLES E EVENTOS =====
 movementButtons.forEach((button) => {
     button.addEventListener('click', () => movePlayer(button.dataset.move));
 });
 
 document.addEventListener('keydown', (event) => {
     const directions = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right' };
-    if (directions[event.key] && !gamePanel.hidden) {
+    if (directions[event.key] && gamePanel && !gamePanel.hidden) {
         event.preventDefault();
         movePlayer(directions[event.key]);
     }
 });
 
-// ===== INICIAR FIREBASE NA CARGA DA PÁGINA =====
+// Inicializador da aplicação ao carregar a página
 window.addEventListener('load', () => {
     initFirebase();
 });
