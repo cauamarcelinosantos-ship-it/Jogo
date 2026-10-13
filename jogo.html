@@ -1,0 +1,1355 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dragon Quest NES: O Duelo Transcendente</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Pixel Press Start 2P -->
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <!-- FontAwesome para ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        * {
+            font-family: 'Press Start 2P', monospace;
+            user-select: none;
+            box-sizing: border-box;
+            image-rendering: pixelated;
+        }
+
+        body {
+            background-color: #050508;
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .nes-box {
+            background-color: #020224;
+            border: 4px solid #ffffff;
+            box-shadow: inset 0 0 0 2px #000000, 0 0 0 2px #000000;
+            border-radius: 4px;
+            padding: 12px;
+            position: relative;
+        }
+
+        .nes-btn {
+            background-color: #000000;
+            border: 2px solid #ffffff;
+            color: #ffffff;
+            padding: 10px 8px;
+            cursor: pointer;
+            transition: all 0.1s ease;
+            text-transform: uppercase;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .nes-btn:hover:not(:disabled) {
+            background-color: #f7d51d;
+            color: #000000;
+        }
+
+        .nes-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .nes-btn-back {
+            background-color: #4a0000;
+        }
+
+        .shake {
+            animation: shake 0.35s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-3px, 0, 0); }
+            20%, 80% { transform: translate3d(5px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-7px, 0, 0); }
+            40%, 60% { transform: translate3d(7px, 0, 0); }
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #000040;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #ffffff;
+        }
+    </style>
+</head>
+<body class="p-2 sm:p-4">
+
+    <!-- Iframe invisível para tocar as músicas do YouTube em segundo plano -->
+    <iframe id="bg-music-player" style="display:none;" allow="autoplay" src=""></iframe>
+
+    <!-- Container Principal -->
+    <div id="game-container" class="w-full max-w-4xl flex flex-col gap-3">
+
+        <!-- Quest Tracker -->
+        <div class="nes-box flex flex-wrap justify-between items-center text-xs gap-2">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-scroll text-yellow-400"></i>
+                <span id="quest-text" class="text-yellow-300">Missão: Visite a Vila de Alefgard e prepare-se</span>
+            </div>
+            <div class="flex items-center gap-3 text-[10px]">
+                <button id="btn-toggle-music" onclick="toggleMusic()" class="nes-btn text-[8px] py-1 px-2 bg-purple-900 hover:bg-purple-700">
+                    <i class="fa-solid fa-music"></i> <span id="music-status-text">Música: ON</span>
+                </button>
+                <span id="seals-status">Selos: <span class="text-red-500">◆</span> <span class="text-blue-500">◆</span> <span class="text-emerald-500">◆</span></span>
+                <span id="recommended-lvl" class="text-gray-300">Lvl Rec: 1</span>
+                <button onclick="resetGame()" class="nes-btn text-[8px] py-1 px-2 bg-red-900 hover:bg-red-700">Reiniciar</button>
+            </div>
+        </div>
+
+        <!-- Layout Central -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+
+            <!-- Status do Player -->
+            <div class="nes-box flex flex-col gap-3">
+                <div class="border-b-2 border-white pb-2 flex justify-between items-center">
+                    <span id="player-name" class="text-yellow-400 text-sm">HERÓI</span>
+                    <span id="player-lvl" class="text-xs">LVL 1</span>
+                </div>
+
+                <div class="space-y-2 text-xs">
+                    <div>
+                        <div class="flex justify-between">
+                            <span>HP:</span>
+                            <span id="hp-text">35/35</span>
+                        </div>
+                        <div class="w-full bg-black h-3 border border-white mt-1">
+                            <div id="hp-bar" class="bg-green-500 h-full w-full transition-all duration-300"></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between">
+                            <span>MP:</span>
+                            <span id="mp-text">15/15</span>
+                        </div>
+                        <div class="w-full bg-black h-3 border border-white mt-1">
+                            <div id="mp-bar" class="bg-blue-500 h-full w-full transition-all duration-300"></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between">
+                            <span>EXP:</span>
+                            <span id="exp-text">0/20</span>
+                        </div>
+                        <div class="w-full bg-black h-2 border border-white mt-1">
+                            <div id="exp-bar" class="bg-yellow-400 h-full w-0 transition-all duration-300"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border-t-2 border-white pt-2 text-[10px] space-y-1 text-gray-300">
+                    <p>ATQ TOTAL: <span id="stat-atk" class="text-white">9</span></p>
+                    <p>DEF TOTAL: <span id="stat-def" class="text-white">4</span></p>
+                    <p>OURO: <span id="stat-gold" class="text-yellow-400">0</span> G</p>
+                    <p class="text-cyan-300 border-t border-gray-700 pt-1">ARMA: <span id="equip-weapon-text" class="text-white">Adaga Inicial</span></p>
+                    <p class="text-cyan-300">ARMADURA: <span id="equip-armor-text" class="text-white">Traje Simples</span></p>
+                    <p class="text-green-300 border-t border-gray-700 pt-1">POÇÕES: <span id="pot-hp-count">3</span> HP / <span id="pot-mp-count">2</span> MP</p>
+                </div>
+
+                <!-- Seletor de Localização -->
+                <div class="mt-auto border-t-2 border-white pt-2">
+                    <label class="block text-[10px] text-yellow-300 mb-1">Localização:</label>
+                    <select id="zone-select" onchange="changeZone(this.value)" class="w-full bg-black border border-white text-white text-[10px] p-1 focus:outline-none">
+                        <option value="0">0. Vila de Alefgard 🏰 (Música 🎵)</option>
+                        <option value="1">1. Florestas 🌲 (Música 🎵)</option>
+                        <option value="2">2. Minas Obsidiana ⛏️ (Música 🎵)</option>
+                        <option value="3">3. Templo Elemental ⛩️ (Música 🎵)</option>
+                        <option value="4" id="opt-spire" disabled>4. Agulha do Dragão 🔒 (Música 🎵)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Canvas da Arena / Vila -->
+            <div id="canvas-wrapper" class="nes-box md:col-span-2 flex flex-col items-center justify-center min-h-[300px]">
+                <div class="w-full flex justify-between items-center text-xs mb-2">
+                    <span id="enemy-name" class="text-red-400 font-bold">Vila de Alefgard</span>
+                    <span id="enemy-hp-text" class="text-xs"></span>
+                </div>
+                
+                <canvas id="gameCanvas" width="460" height="230" class="w-full max-w-[460px] bg-black border-2 border-white rounded shadow-lg"></canvas>
+                
+                <div class="w-full max-w-[460px] mt-2 space-y-1">
+                    <div id="enemy-hp-container" class="w-full bg-black h-3 border border-white hidden">
+                        <div id="enemy-hp-bar" class="bg-red-600 h-full w-full transition-all duration-300"></div>
+                    </div>
+                    <div id="enemy-shield-container" class="w-full bg-black h-2 border border-white hidden">
+                        <div id="enemy-shield-bar" class="bg-cyan-400 h-full w-full transition-all duration-300"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Painel de Ações -->
+        <div class="nes-box">
+            
+            <!-- Ações na Vila -->
+            <div id="menu-town" class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                <button onclick="openTownShop('weapon')" class="nes-btn bg-yellow-950 hover:bg-yellow-800">
+                    <i class="fa-solid fa-shield-halved"></i> Armaria
+                </button>
+                <button onclick="openTownShop('item')" class="nes-btn bg-amber-950 hover:bg-amber-800">
+                    <i class="fa-solid fa-flask"></i> Loja de Itens
+                </button>
+                <button onclick="playerActionRest()" class="nes-btn bg-blue-950 hover:bg-blue-800">
+                    <i class="fa-solid fa-bed"></i> Hospedaria (10G)
+                </button>
+            </div>
+
+            <!-- Loja da Vila: ARMAS -->
+            <div id="menu-town-weapon-shop" class="hidden flex flex-col gap-2">
+                <div class="text-[10px] text-yellow-300 border-b border-yellow-500 pb-1 flex justify-between">
+                    <span>⚔️ LOJA DE ARMAMENTOS</span>
+                    <span>OURO: <span class="shop-gold-display text-white">0</span> G</span>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[10px]">
+                    <button onclick="buyEquipment('weapon', 'Espada de Ferro', 6, 80)" class="nes-btn justify-between">
+                        <span>Espada Ferro (+6 ATQ)</span> <span class="text-yellow-400">80G</span>
+                    </button>
+                    <button onclick="buyEquipment('weapon', 'Espada de Aço', 14, 220)" class="nes-btn justify-between">
+                        <span>Espada Aço (+14 ATQ)</span> <span class="text-yellow-400">220G</span>
+                    </button>
+                    <button onclick="buyEquipment('armor', 'Cota de Malha', 6, 75)" class="nes-btn justify-between">
+                        <span>Cota Malha (+6 DEF)</span> <span class="text-yellow-400">75G</span>
+                    </button>
+                    <button onclick="buyEquipment('armor', 'Armadura Dragão', 14, 200)" class="nes-btn justify-between">
+                        <span>Arm. Dragão (+14 DEF)</span> <span class="text-yellow-400">200G</span>
+                    </button>
+                </div>
+                <button onclick="closeTownShop()" class="nes-btn nes-btn-back w-full mt-1">
+                    <i class="fa-solid fa-arrow-left"></i> Sair da Loja
+                </button>
+            </div>
+
+            <!-- Loja da Vila: ITENS -->
+            <div id="menu-town-item-shop" class="hidden flex flex-col gap-2">
+                <div class="text-[10px] text-amber-300 border-b border-amber-500 pb-1 flex justify-between">
+                    <span>🎒 LOJA DE CONSUMÍVEIS</span>
+                    <span>OURO: <span class="shop-gold-display text-white">0</span> G</span>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[10px]">
+                    <button onclick="buyItem('potHp', 15)" class="nes-btn justify-between">
+                        <span>Poção HP (+45)</span> <span class="text-yellow-400">15G</span>
+                    </button>
+                    <button onclick="buyItem('potMp', 25)" class="nes-btn justify-between">
+                        <span>Poção MP (+25)</span> <span class="text-yellow-400">25G</span>
+                    </button>
+                    <button onclick="buyItem('elixir', 90)" class="nes-btn justify-between">
+                        <span>Elixir Supremo</span> <span class="text-yellow-400">90G</span>
+                    </button>
+                </div>
+                <button onclick="closeTownShop()" class="nes-btn nes-btn-back w-full mt-1">
+                    <i class="fa-solid fa-arrow-left"></i> Sair da Loja
+                </button>
+            </div>
+
+            <!-- Ações Fora de Batalha -->
+            <div id="menu-out-of-combat" class="hidden grid grid-cols-2 gap-3">
+                <button id="btn-explore" onclick="findBattle()" class="nes-btn bg-green-950 hover:bg-green-700">
+                    <i class="fa-solid fa-compass"></i> <span id="btn-explore-text">Explorar Zona</span>
+                </button>
+                <button onclick="changeZone(0)" class="nes-btn bg-blue-950 hover:bg-blue-800">
+                    <i class="fa-solid fa-house"></i> Voltar para a Vila
+                </button>
+            </div>
+
+            <!-- Menu Principal de Combate -->
+            <div id="menu-combat-main" class="hidden grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <button onclick="playerAction('attack')" class="nes-btn">
+                    <i class="fa-solid fa-sword"></i> Atacar
+                </button>
+                <button onclick="playerAction('defend')" class="nes-btn">
+                    <i class="fa-solid fa-shield-halved"></i> Defender
+                </button>
+                <button onclick="openSubMenu('magic')" class="nes-btn bg-purple-950 hover:bg-purple-800">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> Magia
+                </button>
+                <button onclick="openSubMenu('item')" class="nes-btn bg-amber-950 hover:bg-amber-800">
+                    <i class="fa-solid fa-bag-shopping"></i> Item
+                </button>
+            </div>
+
+            <!-- Submenu: MAGIA -->
+            <div id="menu-combat-magic" class="hidden flex flex-col gap-2">
+                <div class="text-[10px] text-purple-300 border-b border-purple-500 pb-1 flex justify-between">
+                    <span>✨ COMPARTIMENTO DE MAGIAS</span>
+                    <span>SELECIONE A MAGIA</span>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <button onclick="useMagic('heal')" class="nes-btn">
+                        <i class="fa-solid fa-hand-holding-medical"></i> Cura (5 MP)
+                    </button>
+                    <button onclick="useMagic('arcane_shield')" class="nes-btn">
+                        <i class="fa-solid fa-shield-cat"></i> Escudo (8 MP)
+                    </button>
+                    <button onclick="useMagic('fireball')" class="nes-btn">
+                        <i class="fa-solid fa-fire"></i> Fogo (10 MP)
+                    </button>
+                    <button id="btn-meteor" onclick="useMagic('meteor')" class="nes-btn" disabled>
+                        <i class="fa-solid fa-meteor"></i> Meteoro (20 MP)
+                    </button>
+                </div>
+                <button onclick="closeSubMenu()" class="nes-btn nes-btn-back w-full mt-1">
+                    <i class="fa-solid fa-arrow-left"></i> Voltar
+                </button>
+            </div>
+
+            <!-- Submenu: ITEM -->
+            <div id="menu-combat-item" class="hidden flex flex-col gap-2">
+                <div class="text-[10px] text-amber-300 border-b border-amber-500 pb-1 flex justify-between">
+                    <span>🎒 INVENTÁRIO DE ITENS</span>
+                    <span>SELECIONE UM ITEM</span>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <button onclick="useItem('hp')" class="nes-btn">
+                        <i class="fa-solid fa-flask text-red-400"></i> Poção HP (<span id="menu-item-hp">3</span>)
+                    </button>
+                    <button onclick="useItem('mp')" class="nes-btn">
+                        <i class="fa-solid fa-flask text-blue-400"></i> Poção MP (<span id="menu-item-mp">2</span>)
+                    </button>
+                    <button onclick="useItem('elixir')" class="nes-btn">
+                        <i class="fa-solid fa-vial-circle-check text-yellow-400"></i> Elixir (<span id="menu-item-elixir">1</span>)
+                    </button>
+                </div>
+                <button onclick="closeSubMenu()" class="nes-btn nes-btn-back w-full mt-1">
+                    <i class="fa-solid fa-arrow-left"></i> Voltar
+                </button>
+            </div>
+
+        </div>
+
+        <!-- Log de Mensagens -->
+        <div class="nes-box h-32 overflow-y-auto text-[10px] space-y-1" id="battle-log">
+            <p class="text-gray-400">> Bem-vindo à Vila de Alefgard! Compre suprimentos ou viaje para explorar.</p>
+        </div>
+
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Mapeamento de Músicas da Vila, Floresta, Minas e Templo
+        const ZONE_MUSIC = {
+            0: "BSC058qagOo", // Vila
+            1: "Ed24gA3if_s", // Floresta
+            2: "0jXTBAGv9ZQ", // Minas
+            3: "5frjFfzVXH4"  // Templo
+        };
+
+        // Mapeamento das Músicas para cada Fase do Boss Final
+        const BOSS_MUSIC = {
+            1: "-4nQKAAqVSQ", // Fase 1
+            2: "RUkRNJJIOTw", // Fase 2
+            3: "APTx5IcLRPY", // Fase 3
+            4: "jGnMWEEWIjs", // Fase 4
+            5: "jGnMWEEWIjs"  // Fase 5
+        };
+
+        let currentTrackId = "";
+        let musicEnabled = true;
+
+        let gameState = {
+            player: {
+                name: 'HERÓI',
+                level: 1,
+                hp: 35,
+                maxHp: 35,
+                mp: 15,
+                maxMp: 15,
+                baseAtk: 7,
+                baseDef: 3,
+                exp: 0,
+                nextExp: 20,
+                gold: 100,
+                weapon: { name: "Adaga Inicial", bonus: 2 },
+                armor: { name: "Traje Simples", bonus: 1 },
+                items: { potHp: 3, potMp: 2, elixir: 1 },
+                isDefending: false,
+                shieldActive: false
+            },
+            currentZone: 0,
+            seals: { ruby: false, sapphire: false, emerald: false },
+            inBattle: false,
+            enemy: null,
+            bossPhase: 1,
+            turn: 0,
+            animFrame: 0
+        };
+
+        const ZONES = [
+            { name: "Vila de Alefgard", minLvl: 1, recLvl: 1 },
+            { name: "Florestas da Entrada", minLvl: 1, recLvl: 1 },
+            { name: "Minas de Obsidiana", minLvl: 4, recLvl: 4 },
+            { name: "Templo Elemental", minLvl: 6, recLvl: 6 },
+            { name: "Agulha do Dragão (DUELO - 5 FASES)", minLvl: 8, recLvl: 8 }
+        ];
+
+        // Animação contínua do Canvas
+        setInterval(() => {
+            gameState.animFrame = (gameState.animFrame + 1) % 100;
+            if (gameState.inBattle) {
+                drawEnemy();
+            } else if (gameState.currentZone === 0) {
+                drawTownCanvas();
+            } else {
+                drawCanvasPlaceholder();
+            }
+        }, 100);
+
+        window.onload = () => {
+            loadGame();
+            updateUI();
+            drawTownCanvas();
+            updateMusic();
+        };
+
+        function toggleMusic() {
+            musicEnabled = !musicEnabled;
+            document.getElementById('music-status-text').innerText = musicEnabled ? "Música: ON" : "Música: OFF";
+            updateMusic();
+        }
+
+        function updateMusic() {
+            let trackId = "";
+
+            if (gameState.currentZone === 4 && gameState.inBattle) {
+                trackId = BOSS_MUSIC[gameState.bossPhase] || "";
+            } else {
+                trackId = ZONE_MUSIC[gameState.currentZone] || "";
+            }
+
+            const iframe = document.getElementById('bg-music-player');
+
+            if (!musicEnabled || !trackId) {
+                iframe.src = "";
+                currentTrackId = "";
+                return;
+            }
+
+            if (currentTrackId !== trackId) {
+                currentTrackId = trackId;
+                iframe.src = `https://www.youtube.com/embed/${trackId}?autoplay=1&loop=1&playlist=${trackId}&enablejsapi=1`;
+            }
+        }
+
+        function saveGame() {
+            localStorage.setItem('dq_nes_save_v8', JSON.stringify(gameState));
+        }
+
+        function loadGame() {
+            const saved = localStorage.getItem('dq_nes_save_v8');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    gameState = { ...gameState, ...parsed };
+                    logMessage("Progresso carregado com sucesso!", "text-green-400");
+                } catch(e) {
+                    console.error("Erro ao carregar save", e);
+                }
+            }
+        }
+
+        function resetGame() {
+            if(confirm("Deseja reiniciar todo o progresso do jogo?")) {
+                localStorage.removeItem('dq_nes_save_v8');
+                location.reload();
+            }
+        }
+
+        function triggerScreenShake() {
+            const wrapper = document.getElementById('canvas-wrapper');
+            wrapper.classList.remove('shake');
+            void wrapper.offsetWidth;
+            wrapper.classList.add('shake');
+            setTimeout(() => wrapper.classList.remove('shake'), 350);
+        }
+
+        function logMessage(msg, colorClass = "text-white") {
+            const log = document.getElementById('battle-log');
+            const p = document.createElement('p');
+            p.className = colorClass;
+            p.innerHTML = `> ${msg}`;
+            log.appendChild(p);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function getTotalAtk() {
+            return gameState.player.baseAtk + (gameState.player.weapon ? gameState.player.weapon.bonus : 0);
+        }
+
+        function getTotalDef() {
+            return gameState.player.baseDef + (gameState.player.armor ? gameState.player.armor.bonus : 0);
+        }
+
+        function updateUI() {
+            const p = gameState.player;
+            document.getElementById('player-lvl').innerText = `LVL ${p.level}`;
+            document.getElementById('hp-text').innerText = `${p.hp}/${p.maxHp}`;
+            document.getElementById('hp-bar').style.width = `${Math.max(0, (p.hp/p.maxHp)*100)}%`;
+            
+            document.getElementById('mp-text').innerText = `${p.mp}/${p.maxMp}`;
+            document.getElementById('mp-bar').style.width = `${Math.max(0, (p.mp/p.maxMp)*100)}%`;
+
+            document.getElementById('exp-text').innerText = `${p.exp}/${p.nextExp}`;
+            document.getElementById('exp-bar').style.width = `${Math.min(100, (p.exp/p.nextExp)*100)}%`;
+
+            document.getElementById('stat-atk').innerText = getTotalAtk();
+            document.getElementById('stat-def').innerText = getTotalDef();
+            document.getElementById('stat-gold').innerText = p.gold;
+
+            document.querySelectorAll('.shop-gold-display').forEach(el => el.innerText = p.gold);
+
+            document.getElementById('equip-weapon-text').innerText = p.weapon.name;
+            document.getElementById('equip-armor-text').innerText = p.armor.name;
+
+            document.getElementById('pot-hp-count').innerText = p.items.potHp;
+            document.getElementById('pot-mp-count').innerText = p.items.potMp;
+            document.getElementById('menu-item-hp').innerText = p.items.potHp;
+            document.getElementById('menu-item-mp').innerText = p.items.potMp;
+            document.getElementById('menu-item-elixir').innerText = p.items.elixir;
+
+            document.getElementById('btn-meteor').disabled = p.level < 7;
+
+            const ruby = gameState.seals.ruby ? '<span class="text-red-500">◆</span>' : '<span class="text-gray-600">◇</span>';
+            const sapphire = gameState.seals.sapphire ? '<span class="text-blue-500">◆</span>' : '<span class="text-gray-600">◇</span>';
+            const emerald = gameState.seals.emerald ? '<span class="text-emerald-500">◆</span>' : '<span class="text-gray-600">◇</span>';
+            document.getElementById('seals-status').innerHTML = `Selos: ${ruby} ${sapphire} ${emerald}`;
+
+            const allSealsUnlocked = gameState.seals.ruby && gameState.seals.sapphire && gameState.seals.emerald;
+            const spireOpt = document.getElementById('opt-spire');
+            if (allSealsUnlocked) {
+                spireOpt.disabled = false;
+                spireOpt.innerText = "4. Agulha do Dragão ⚔️ (Música 🎵)";
+            }
+
+            document.getElementById('zone-select').value = gameState.currentZone;
+
+            const qText = document.getElementById('quest-text');
+            const recLvl = document.getElementById('recommended-lvl');
+            recLvl.innerText = `Lvl Rec: ${ZONES[gameState.currentZone].recLvl}`;
+
+            if (gameState.currentZone === 0) {
+                qText.innerText = "Missão: Prepare-se na Vila e explore as terras de Alefgard";
+            } else if (!allSealsUnlocked && gameState.currentZone < 4) {
+                qText.innerText = "Missão: Derrote os 3 Guardiões do Templo Elemental";
+            } else if (allSealsUnlocked && gameState.currentZone < 4) {
+                qText.innerText = "Missão: Siga para a Agulha do Dragão para o Duelo Final!";
+            } else if (gameState.currentZone === 4) {
+                qText.innerText = `Duelo Supremo: Fase ${gameState.bossPhase}/5!`;
+            }
+
+            if (gameState.enemy) {
+                document.getElementById('enemy-name').innerText = gameState.enemy.name;
+                document.getElementById('enemy-hp-text').innerText = `${gameState.enemy.hp}/${gameState.enemy.maxHp} HP`;
+                document.getElementById('enemy-hp-container').classList.remove('hidden');
+                document.getElementById('enemy-hp-bar').style.width = `${Math.max(0, (gameState.enemy.hp / gameState.enemy.maxHp)*100)}%`;
+
+                if (gameState.enemy.shield > 0) {
+                    document.getElementById('enemy-shield-container').classList.remove('hidden');
+                    document.getElementById('enemy-shield-bar').style.width = `${(gameState.enemy.shield / 160)*100}%`;
+                } else {
+                    document.getElementById('enemy-shield-container').classList.add('hidden');
+                }
+            } else {
+                document.getElementById('enemy-name').innerText = ZONES[gameState.currentZone].name;
+                document.getElementById('enemy-hp-text').innerText = "";
+                document.getElementById('enemy-hp-container').classList.add('hidden');
+                document.getElementById('enemy-shield-container').classList.add('hidden');
+            }
+
+            const menuTown = document.getElementById('menu-town');
+            const menuOutCombat = document.getElementById('menu-out-of-combat');
+            const menuCombatMain = document.getElementById('menu-combat-main');
+
+            if (gameState.inBattle) {
+                menuTown.classList.add('hidden');
+                menuOutCombat.classList.add('hidden');
+                if (document.getElementById('menu-combat-magic').classList.contains('hidden') && 
+                    document.getElementById('menu-combat-item').classList.contains('hidden')) {
+                    menuCombatMain.classList.remove('hidden');
+                }
+            } else {
+                menuCombatMain.classList.add('hidden');
+                document.getElementById('menu-combat-magic').classList.add('hidden');
+                document.getElementById('menu-combat-item').classList.add('hidden');
+
+                if (gameState.currentZone === 0) {
+                    menuTown.classList.remove('hidden');
+                    menuOutCombat.classList.add('hidden');
+                } else {
+                    menuTown.classList.add('hidden');
+                    menuOutCombat.classList.remove('hidden');
+                }
+            }
+
+            saveGame();
+        }
+
+        // Lojas e Hospedaria
+        function openTownShop(shopType) {
+            document.getElementById('menu-town').classList.add('hidden');
+            if (shopType === 'weapon') {
+                document.getElementById('menu-town-weapon-shop').classList.remove('hidden');
+            } else if (shopType === 'item') {
+                document.getElementById('menu-town-item-shop').classList.remove('hidden');
+            }
+        }
+
+        function closeTownShop() {
+            document.getElementById('menu-town-weapon-shop').classList.add('hidden');
+            document.getElementById('menu-town-item-shop').classList.add('hidden');
+            document.getElementById('menu-town').classList.remove('hidden');
+        }
+
+        function playerActionRest() {
+            let p = gameState.player;
+            if (p.gold < 10) {
+                logMessage("Ouro insuficiente para descansar na Hospedaria (10G necessários).", "text-red-400");
+                return;
+            }
+            p.gold -= 10;
+            p.hp = p.maxHp;
+            p.mp = p.maxMp;
+            logMessage("💤 Você descansou na Hospedaria! HP e MP totalmente restaurados.", "text-green-300 font-bold");
+            updateUI();
+        }
+
+        function buyEquipment(type, name, bonus, price) {
+            let p = gameState.player;
+            if (p.gold < price) {
+                logMessage("Ouro insuficiente para esta compra!", "text-red-400");
+                return;
+            }
+
+            p.gold -= price;
+            if (type === 'weapon') {
+                p.weapon = { name: name, bonus: bonus };
+                logMessage(`⚔️ Você comprou e equipou: ${name} (+${bonus} ATQ)!`, "text-yellow-300 font-bold");
+            } else if (type === 'armor') {
+                p.armor = { name: name, bonus: bonus };
+                logMessage(`🛡️ Você comprou e equipou: ${name} (+${bonus} DEF)!`, "text-cyan-300 font-bold");
+            }
+            updateUI();
+        }
+
+        function buyItem(itemType, price) {
+            let p = gameState.player;
+            if (p.gold < price) {
+                logMessage("Ouro insuficiente para comprar este item!", "text-red-400");
+                return;
+            }
+
+            p.gold -= price;
+            if (itemType === 'potHp') {
+                p.items.potHp++;
+                logMessage("🧪 Comprou 1x Poção de HP!", "text-green-300");
+            } else if (itemType === 'potMp') {
+                p.items.potMp++;
+                logMessage("🧪 Comprou 1x Poção de MP!", "text-blue-300");
+            } else if (itemType === 'elixir') {
+                p.items.elixir++;
+                logMessage("🌟 Comprou 1x Elixir Supremo!", "text-yellow-300 font-bold");
+            }
+            updateUI();
+        }
+
+        function openSubMenu(menu) {
+            document.getElementById('menu-combat-main').classList.add('hidden');
+            if (menu === 'magic') {
+                document.getElementById('menu-combat-magic').classList.remove('hidden');
+            } else if (menu === 'item') {
+                document.getElementById('menu-combat-item').classList.remove('hidden');
+            }
+        }
+
+        function closeSubMenu() {
+            document.getElementById('menu-combat-magic').classList.add('hidden');
+            document.getElementById('menu-combat-item').classList.add('hidden');
+            if (gameState.inBattle) {
+                document.getElementById('menu-combat-main').classList.remove('hidden');
+            }
+        }
+
+        function changeZone(val) {
+            gameState.currentZone = parseInt(val);
+            closeTownShop();
+            updateMusic();
+            logMessage(`Você se moveu para: ${ZONES[gameState.currentZone].name}`, "text-yellow-300");
+            updateUI();
+        }
+
+        // Fases do Boss Final
+        function getBossPhaseData(phase) {
+            const phases = {
+                1: { name: "Dragão da Destruição", hp: 220, atk: 26, def: 12, exp: 200, gold: 200, type: "boss_p1", shield: 0 },
+                2: { name: "Dragon of the World's End", hp: 300, atk: 33, def: 15, exp: 300, gold: 300, type: "boss_p2", shield: 50 },
+                3: { name: "Dragão Transcendente", hp: 380, atk: 40, def: 18, exp: 400, gold: 400, type: "boss_p3", shield: 80 },
+                4: { name: "DARK GOD KNIGHT", hp: 460, atk: 48, def: 22, exp: 600, gold: 600, type: "boss_p4", shield: 110 },
+                5: { name: "WHITE BEAST OF CREATION", hp: 580, atk: 55, def: 25, exp: 1000, gold: 1000, type: "boss_p5", shield: 160 }
+            };
+            return phases[phase];
+        }
+
+        // Sistema de Combate
+        function findBattle() {
+            const zone = gameState.currentZone;
+            if (zone === 0) return;
+
+            let enemyData;
+
+            if (zone === 1) {
+                const pool = [
+                    { name: "Slime Verde", hp: 22, atk: 7, def: 2, exp: 12, gold: 12, type: "slime" },
+                    { name: "Goblin Ladrão", hp: 35, atk: 10, def: 3, exp: 20, gold: 20, type: "goblin" }
+                ];
+                enemyData = pool[Math.floor(Math.random() * pool.length)];
+            } else if (zone === 2) {
+                const pool = [
+                    { name: "Esqueleto Guerreiro", hp: 60, atk: 15, def: 6, exp: 38, gold: 35, type: "skeleton" },
+                    { name: "Orc Berserker", hp: 80, atk: 19, def: 8, exp: 55, gold: 50, type: "orc" },
+                    { name: "Golem de Pedra", hp: 120, atk: 16, def: 14, exp: 75, gold: 70, type: "golem" }
+                ];
+                enemyData = pool[Math.floor(Math.random() * pool.length)];
+            } else if (zone === 3) {
+                if (!gameState.seals.ruby) {
+                    enemyData = { name: "Guardião de Rubi", hp: 150, atk: 23, def: 10, exp: 130, gold: 150, type: "boss_ruby", isBoss: true };
+                } else if (!gameState.seals.sapphire) {
+                    enemyData = { name: "Guardião de Safira", hp: 180, atk: 26, def: 12, exp: 170, gold: 200, type: "boss_sapphire", isBoss: true };
+                } else if (!gameState.seals.emerald) {
+                    enemyData = { name: "Guardião de Esmeralda", hp: 220, atk: 30, def: 15, exp: 230, gold: 250, type: "boss_emerald", isBoss: true };
+                } else {
+                    logMessage("Todos os Guardiões do Templo foram derrotados! Siga para a Agulha do Dragão.", "text-yellow-400");
+                    return;
+                }
+            } else if (zone === 4) {
+                gameState.bossPhase = 1;
+                enemyData = getBossPhaseData(1);
+                logMessage("⚔️ DUELO SUPREMO INICIADO! Enfrente as 5 Formas da Transcendência!", "text-red-500 font-bold");
+            }
+
+            gameState.enemy = { ...enemyData, maxHp: enemyData.hp, shield: enemyData.shield || 0 };
+            gameState.inBattle = true;
+            gameState.turn = 1;
+
+            if (zone !== 4) {
+                logMessage(`Um ${gameState.enemy.name} apareceu!`, "text-red-400 font-bold");
+            }
+
+            updateMusic();
+            updateUI();
+        }
+
+        function playerAction(action) {
+            if (!gameState.inBattle || !gameState.enemy) return;
+
+            let p = gameState.player;
+            let e = gameState.enemy;
+            p.isDefending = false;
+
+            if (action === 'attack') {
+                let damage = Math.max(1, getTotalAtk() - Math.floor(e.def / 2) + Math.floor(Math.random() * 4));
+                
+                if (e.shield > 0) {
+                    let shieldDmg = Math.min(e.shield, damage);
+                    e.shield -= shieldDmg;
+                    damage -= shieldDmg;
+                    logMessage(`💥 Você atacou! Escudo inimigo absorveu ${shieldDmg} de dano!`, "text-cyan-300");
+                }
+                
+                if (damage > 0) {
+                    e.hp -= damage;
+                    logMessage(`⚔️ Você atacou ${e.name} causando ${damage} de dano!`, "text-yellow-300");
+                }
+            } else if (action === 'defend') {
+                p.isDefending = true;
+                logMessage("🛡️ Você assumiu postura defensiva reduzindo o próximo dano!", "text-blue-300");
+            }
+
+            checkBattleStatus();
+        }
+
+        function useMagic(type) {
+            let p = gameState.player;
+            let e = gameState.enemy;
+
+            if (type === 'heal') {
+                if (p.mp < 5) return logMessage("MP insuficiente!", "text-red-400");
+                p.mp -= 5;
+                let healAmount = 30 + Math.floor(p.level * 4);
+                p.hp = Math.min(p.maxHp, p.hp + healAmount);
+                logMessage(`✨ Magia de Cura! Restaurou ${healAmount} de HP!`, "text-green-300");
+            } else if (type === 'arcane_shield') {
+                if (p.mp < 8) return logMessage("MP insuficiente!", "text-red-400");
+                p.mp -= 8;
+                p.shieldActive = true;
+                logMessage(`🔮 Escudo Arcano ativado! Mitigando ataques ferozes.`, "text-cyan-300");
+            } else if (type === 'fireball') {
+                if (p.mp < 10) return logMessage("MP insuficiente!", "text-red-400");
+                p.mp -= 10;
+                let dmg = 28 + Math.floor(p.level * 5);
+                e.hp -= dmg;
+                logMessage(`🔥 Bola de Fogo explodiu em ${e.name} causando ${dmg} de dano mágico!`, "text-orange-400 font-bold");
+            } else if (type === 'meteor') {
+                if (p.mp < 20) return logMessage("MP insuficiente!", "text-red-400");
+                p.mp -= 20;
+                let dmg = 65 + Math.floor(p.level * 8);
+                e.hp -= dmg;
+                triggerScreenShake();
+                logMessage(`☄️ METEORO DEVASTADOR atingiu ${e.name} causando ${dmg} de dano!`, "text-yellow-400 font-bold");
+            }
+
+            closeSubMenu();
+            checkBattleStatus();
+        }
+
+        function useItem(type) {
+            let p = gameState.player;
+            if (type === 'hp' && p.items.potHp > 0) {
+                p.items.potHp--;
+                p.hp = Math.min(p.maxHp, p.hp + 45);
+                logMessage("🧪 Usou Poção de HP (+45 HP)!", "text-green-300");
+            } else if (type === 'mp' && p.items.potMp > 0) {
+                p.items.potMp--;
+                p.mp = Math.min(p.maxMp, p.mp + 25);
+                logMessage("🧪 Usou Poção de MP (+25 MP)!", "text-blue-300");
+            } else if (type === 'elixir' && p.items.elixir > 0) {
+                p.items.elixir--;
+                p.hp = p.maxHp;
+                p.mp = p.maxMp;
+                logMessage("🌟 Usou Elixir Supremo! HP e MP totalmente restaurados!", "text-yellow-300 font-bold");
+            } else {
+                return logMessage("Item esgotado!", "text-red-400");
+            }
+
+            closeSubMenu();
+            checkBattleStatus();
+        }
+
+        function checkBattleStatus() {
+            if (gameState.enemy.hp <= 0) {
+                gameState.enemy.hp = 0;
+                
+                if (gameState.currentZone === 4 && gameState.bossPhase < 5) {
+                    gameState.bossPhase++;
+                    let nextPhase = getBossPhaseData(gameState.bossPhase);
+                    gameState.enemy = { ...nextPhase, maxHp: nextPhase.hp, shield: nextPhase.shield };
+                    triggerScreenShake();
+                    logMessage(`⚡ TRANSCENDÊNCIA! O chefão assumiu a FASE ${gameState.bossPhase}: ${nextPhase.name}!`, "text-yellow-300 font-bold");
+                    updateMusic();
+                    updateUI();
+                    return;
+                }
+
+                logMessage(`🎉 Você derrotou ${gameState.enemy.name}!`, "text-green-400 font-bold");
+                let p = gameState.player;
+                p.exp += gameState.enemy.exp;
+                p.gold += gameState.enemy.gold;
+
+                if (gameState.enemy.type === "boss_ruby") gameState.seals.ruby = true;
+                if (gameState.enemy.type === "boss_sapphire") gameState.seals.sapphire = true;
+                if (gameState.enemy.type === "boss_emerald") gameState.seals.emerald = true;
+
+                if (gameState.currentZone === 4 && gameState.bossPhase === 5) {
+                    logMessage("👑 PARABÉNS! VOCÊ DERROTOU A WHITE BEAST OF CREATION E SALVOU O REINO!", "text-yellow-300 text-sm font-bold");
+                }
+
+                if (p.exp >= p.nextExp) {
+                    p.level++;
+                    p.exp -= p.nextExp;
+                    p.nextExp = Math.floor(p.nextExp * 1.6);
+                    p.maxHp += 12;
+                    p.hp = p.maxHp;
+                    p.maxMp += 6;
+                    p.mp = p.maxMp;
+                    p.baseAtk += 3;
+                    p.baseDef += 2;
+                    logMessage(`🌟 SUBIU DE NÍVEL! Agora você está no Nível ${p.level}!`, "text-yellow-300 font-bold");
+                }
+
+                gameState.inBattle = false;
+                gameState.enemy = null;
+                updateMusic();
+                updateUI();
+            } else {
+                enemyTurn();
+            }
+        }
+
+        function enemyTurn() {
+            if (!gameState.inBattle || !gameState.enemy) return;
+
+            let p = gameState.player;
+            let e = gameState.enemy;
+
+            let rawDmg = Math.max(2, e.atk - Math.floor(getTotalDef() / 2) + Math.floor(Math.random() * 3));
+
+            if (p.isDefending) rawDmg = Math.floor(rawDmg / 2);
+            if (p.shieldActive) {
+                rawDmg = Math.floor(rawDmg * 0.7);
+                p.shieldActive = false;
+            }
+
+            p.hp -= rawDmg;
+            triggerScreenShake();
+            logMessage(`💥 ${e.name} atacou causando ${rawDmg} de dano!`, "text-red-400");
+
+            if (p.hp <= 0) {
+                p.hp = 0;
+                logMessage("💀 Você foi derrotado! Retornando à Vila de Alefgard...", "text-red-600 font-bold");
+                gameState.inBattle = false;
+                gameState.enemy = null;
+                gameState.currentZone = 0;
+                updateMusic();
+                p.hp = p.maxHp;
+                p.mp = p.maxMp;
+            }
+
+            gameState.turn++;
+            updateUI();
+        }
+
+        // ==========================================
+        // RENDERIZAÇÃO GRÁFICA NO CANVAS
+        // ==========================================
+
+        function drawTownCanvas() {
+            ctx.fillStyle = '#0a1128';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = '#8b5a2b';
+            ctx.fillRect(60, 110, 80, 60);
+            ctx.fillRect(320, 110, 80, 60);
+
+            ctx.fillStyle = '#b22222';
+            ctx.beginPath();
+            ctx.moveTo(50, 110); ctx.lineTo(100, 70); ctx.lineTo(150, 110);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.moveTo(310, 110); ctx.lineTo(360, 70); ctx.lineTo(410, 110);
+            ctx.fill();
+
+            ctx.fillStyle = '#f7d51d';
+            ctx.fillRect(90, 140, 20, 30);
+            ctx.fillRect(350, 140, 20, 30);
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '10px "Press Start 2P"';
+            ctx.textAlign = 'center';
+            ctx.fillText("VILA DE ALEFGARD - PORTO SEGURO", canvas.width/2, 40);
+        }
+
+        function drawCanvasPlaceholder() {
+            ctx.fillStyle = '#050515';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = '#4a5568';
+            ctx.font = '10px "Press Start 2P"';
+            ctx.textAlign = 'center';
+            ctx.fillText(ZONES[gameState.currentZone].name, canvas.width/2, 100);
+            ctx.fillText("Pressione 'Explorar Zona' para procurar batalhas", canvas.width/2, 130);
+        }
+
+        function drawEnemy() {
+            if (!gameState.enemy) return;
+
+            const e = gameState.enemy;
+            const frame = gameState.animFrame;
+
+            if (gameState.currentZone === 4) {
+                ctx.fillStyle = (frame % 20 < 10) ? '#180028' : '#0d001a';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(40, (frame * 3) % 230, 2, 2);
+                ctx.fillRect(120, (frame * 5) % 230, 3, 3);
+                ctx.fillRect(380, (frame * 2) % 230, 2, 2);
+                ctx.fillRect(280, (frame * 4) % 230, 3, 3);
+            } else {
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2 + 10;
+
+            ctx.save();
+
+            if (e.type.startsWith("boss_p")) {
+                drawBossPixelArt(ctx, gameState.bossPhase, cx, cy, frame);
+            } else if (e.type === "slime") {
+                drawSlime(ctx, cx, cy, frame);
+            } else if (e.type === "goblin") {
+                drawGoblin(ctx, cx, cy, frame);
+            } else if (e.type === "skeleton") {
+                drawSkeleton(ctx, cx, cy, frame);
+            } else if (e.type === "orc") {
+                drawOrc(ctx, cx, cy, frame);
+            } else if (e.type === "golem") {
+                drawGolem(ctx, cx, cy, frame);
+            } else if (e.type.startsWith("boss_")) {
+                drawTempleGuardian(ctx, e.type, cx, cy, frame);
+            }
+
+            ctx.restore();
+
+            if (gameState.currentZone === 4) {
+                ctx.fillStyle = '#f7d51d';
+                ctx.font = '9px "Press Start 2P"';
+                ctx.textAlign = 'center';
+                ctx.fillText(`--- FASE ${gameState.bossPhase} DE 5 ---`, cx, 25);
+            }
+        }
+
+        function drawSlime(ctx, cx, cy, frame) {
+            const bounce = Math.abs(Math.sin(frame * 0.2)) * 6;
+            const y = cy + 10 - bounce;
+
+            ctx.fillStyle = '#0f381e';
+            ctx.beginPath();
+            ctx.ellipse(cx, cy + 32, 28, 8, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#22c55e';
+            ctx.beginPath();
+            ctx.moveTo(cx, y - 35);
+            ctx.bezierCurveTo(cx + 25, y - 25, cx + 36, y + 15, cx + 22, y + 26);
+            ctx.bezierCurveTo(cx, y + 32, cx - 22, y + 32, cx - 22, y + 26);
+            ctx.bezierCurveTo(cx - 36, y + 15, cx - 25, y - 25, cx, y - 35);
+            ctx.fill();
+
+            ctx.fillStyle = '#86efac';
+            ctx.beginPath();
+            ctx.arc(cx - 10, y - 12, 6, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(cx - 10, y, 7, 0, Math.PI * 2);
+            ctx.arc(cx + 10, y, 7, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#000000';
+            ctx.beginPath();
+            ctx.arc(cx - 8, y, 3, 0, Math.PI * 2);
+            ctx.arc(cx + 12, y, 3, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.strokeStyle = '#15803d';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(cx, y + 6, 10, 0.1 * Math.PI, 0.9 * Math.PI);
+            ctx.stroke();
+        }
+
+        function drawGoblin(ctx, cx, cy, frame) {
+            const floatY = Math.sin(frame * 0.2) * 3;
+            const y = cy + floatY;
+
+            ctx.fillStyle = '#854d0e';
+            ctx.fillRect(cx + 6, y - 15, 22, 28);
+            ctx.fillStyle = '#eab308';
+            ctx.fillRect(cx + 12, y - 22, 10, 8);
+
+            ctx.fillStyle = '#15803d';
+            ctx.fillRect(cx - 16, y - 10, 28, 30);
+
+            ctx.fillStyle = '#3f6212';
+            ctx.fillRect(cx - 18, y - 28, 32, 18);
+
+            ctx.fillStyle = '#15803d';
+            ctx.fillRect(cx - 32, y - 24, 14, 6);
+            ctx.fillRect(cx + 14, y - 24, 14, 6);
+
+            ctx.fillStyle = '#ef4444';
+            ctx.fillRect(cx - 10, y - 20, 6, 4);
+            ctx.fillRect(cx + 2, y - 20, 6, 4);
+
+            ctx.fillStyle = '#94a3b8';
+            ctx.fillRect(cx - 28, y - 5, 8, 22);
+            ctx.fillStyle = '#f59e0b';
+            ctx.fillRect(cx - 28, y + 10, 10, 4);
+        }
+
+        function drawSkeleton(ctx, cx, cy, frame) {
+            const y = cy + Math.sin(frame * 0.15) * 2;
+
+            ctx.fillStyle = '#64748b';
+            ctx.fillRect(cx - 16, y - 42, 32, 14);
+            ctx.fillStyle = '#475569';
+            ctx.fillRect(cx - 2, y - 48, 4, 8);
+
+            ctx.fillStyle = '#e7e5e4';
+            ctx.fillRect(cx - 14, y - 28, 28, 20);
+            
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(cx - 10, y - 22, 7, 7);
+            ctx.fillRect(cx + 3, y - 22, 7, 7);
+            ctx.fillRect(cx - 8, y - 11, 16, 3);
+            
+            ctx.fillStyle = '#dc2626';
+            ctx.fillRect(cx - 7, y - 20, 3, 3);
+            ctx.fillRect(cx + 5, y - 20, 3, 3);
+
+            ctx.fillStyle = '#e7e5e4';
+            ctx.fillRect(cx - 12, y - 6, 24, 30);
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(cx - 10, y - 2, 20, 4);
+            ctx.fillRect(cx - 10, y + 6, 20, 4);
+            ctx.fillRect(cx - 10, y + 14, 20, 4);
+
+            ctx.fillStyle = '#78350f';
+            ctx.beginPath();
+            ctx.arc(cx - 26, y + 8, 14, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#94a3b8';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            ctx.fillStyle = '#94a3b8';
+            ctx.fillRect(cx + 20, y - 30, 4, 45);
+            ctx.fillStyle = '#b45309';
+            ctx.fillRect(cx + 14, y + 10, 16, 4);
+        }
+
+        function drawOrc(ctx, cx, cy, frame) {
+            const y = cy + Math.sin(frame * 0.1) * 3;
+
+            ctx.fillStyle = '#451a03';
+            ctx.fillRect(cx - 32, y - 25, 16, 16);
+            ctx.fillRect(cx + 16, y - 25, 16, 16);
+            ctx.fillStyle = '#d6d3d1';
+            ctx.fillRect(cx - 28, y - 33, 4, 10);
+            ctx.fillRect(cx + 24, y - 33, 4, 10);
+
+            ctx.fillStyle = '#166534';
+            ctx.fillRect(cx - 24, y - 20, 48, 50);
+
+            ctx.fillStyle = '#15803d';
+            ctx.fillRect(cx - 18, y - 45, 36, 28);
+
+            ctx.fillStyle = '#166534';
+            ctx.fillRect(cx - 10, y - 28, 20, 10);
+            ctx.fillStyle = '#f5f5f4';
+            ctx.fillRect(cx - 12, y - 32, 5, 10);
+            ctx.fillRect(cx + 7, y - 32, 5, 10);
+
+            ctx.fillStyle = '#facc15';
+            ctx.fillRect(cx - 12, y - 38, 6, 5);
+            ctx.fillRect(cx + 6, y - 38, 6, 5);
+
+            ctx.fillStyle = '#78350f';
+            ctx.fillRect(cx + 26, y - 48, 12, 60);
+            ctx.fillStyle = '#94a3b8';
+            ctx.fillRect(cx + 22, y - 42, 4, 4);
+            ctx.fillRect(cx + 38, y - 30, 4, 4);
+            ctx.fillRect(cx + 22, y - 18, 4, 4);
+        }
+
+        function drawGolem(ctx, cx, cy, frame) {
+            const y = cy;
+
+            ctx.fillStyle = '#57534e';
+            ctx.fillRect(cx - 35, y - 40, 70, 70);
+
+            ctx.strokeStyle = '#292524';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(cx - 35, y - 40, 70, 70);
+            ctx.beginPath();
+            ctx.moveTo(cx - 35, y - 15); ctx.lineTo(cx + 35, y - 15);
+            ctx.moveTo(cx - 35, y + 10); ctx.lineTo(cx + 35, y + 10);
+            ctx.moveTo(cx, y - 40); ctx.lineTo(cx, y - 15);
+            ctx.moveTo(cx - 15, y - 15); ctx.lineTo(cx - 15, y + 10);
+            ctx.moveTo(cx + 15, y + 10); ctx.lineTo(cx + 15, y + 30);
+            ctx.stroke();
+
+            ctx.fillStyle = '#44403c';
+            ctx.fillRect(cx - 52, y - 10, 18, 45);
+            ctx.fillRect(cx + 34, y - 10, 18, 45);
+
+            ctx.fillStyle = (frame % 10 < 5) ? '#f97316' : '#facc15';
+            ctx.fillRect(cx - 20, y - 30, 10, 8);
+            ctx.fillRect(cx + 10, y - 30, 10, 8);
+            ctx.fillRect(cx - 2, y - 10, 4, 30);
+        }
+
+        function drawTempleGuardian(ctx, type, cx, cy, frame) {
+            let color = '#dc2626';
+            if (type === 'boss_sapphire') color = '#2563eb';
+            if (type === 'boss_emerald') color = '#059669';
+
+            const floatY = Math.sin(frame * 0.15) * 4;
+
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.moveTo(cx, cy - 65 + floatY);
+            ctx.lineTo(cx + 35, cy - 20 + floatY);
+            ctx.lineTo(cx + 25, cy + 35 + floatY);
+            ctx.lineTo(cx - 25, cy + 35 + floatY);
+            ctx.lineTo(cx - 35, cy - 20 + floatY);
+            ctx.fill();
+
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(cx - 12, cy - 40 + floatY, 24, 12);
+
+            ctx.fillStyle = '#fef08a';
+            ctx.fillRect(cx - 8, cy - 10 + floatY, 16, 16);
+        }
+
+        function drawBossPixelArt(ctx, phase, cx, cy, frame) {
+            const floatY = Math.sin(frame * 0.15) * 4;
+
+            if (phase === 1) {
+                ctx.fillStyle = '#1c1917';
+                
+                ctx.beginPath();
+                ctx.moveTo(cx - 100, cy - 50 + floatY); ctx.lineTo(cx - 20, cy - 10 + floatY); ctx.lineTo(cx - 70, cy + 45 + floatY);
+                ctx.moveTo(cx + 100, cy - 50 + floatY); ctx.lineTo(cx + 20, cy - 10 + floatY); ctx.lineTo(cx + 70, cy + 45 + floatY);
+                ctx.fill();
+
+                ctx.fillRect(cx - 30, cy - 10 + floatY, 60, 50);
+                ctx.fillRect(cx - 12, cy - 52 + floatY, 24, 45);
+
+                ctx.fillRect(cx - 18, cy - 68 + floatY, 36, 20);
+                ctx.fillStyle = '#44403c';
+                ctx.fillRect(cx - 26, cy - 82 + floatY, 8, 20);
+                ctx.fillRect(cx + 18, cy - 82 + floatY, 8, 20);
+
+                ctx.fillStyle = '#dc2626';
+                ctx.fillRect(cx - 10, cy - 62 + floatY, 5, 5);
+                ctx.fillRect(cx + 5, cy - 62 + floatY, 5, 5);
+
+            } else if (phase === 2) {
+                ctx.fillStyle = '#cbd5e1';
+                ctx.beginPath();
+                ctx.moveTo(cx - 105, cy - 55 + floatY); ctx.lineTo(cx - 20, cy - 10 + floatY); ctx.lineTo(cx - 75, cy + 45 + floatY);
+                ctx.moveTo(cx + 105, cy - 55 + floatY); ctx.lineTo(cx + 20, cy - 10 + floatY); ctx.lineTo(cx + 75, cy + 45 + floatY);
+                ctx.fill();
+
+                ctx.fillStyle = '#991b1b';
+                ctx.fillRect(cx - 28, cy - 10 + floatY, 56, 50);
+                ctx.fillStyle = '#f8fafc';
+                ctx.fillRect(cx - 32, cy - 5 + floatY, 8, 45);
+                ctx.fillRect(cx + 24, cy - 5 + floatY, 8, 45);
+
+                ctx.fillStyle = '#991b1b';
+                ctx.fillRect(cx - 12, cy - 52 + floatY, 24, 45);
+                ctx.fillStyle = '#f8fafc';
+                ctx.fillRect(cx - 14, cy - 48 + floatY, 4, 38);
+                ctx.fillRect(cx + 10, cy - 48 + floatY, 4, 38);
+
+                ctx.fillStyle = '#e2e8f0';
+                ctx.fillRect(cx - 18, cy - 68 + floatY, 36, 20);
+                
+                ctx.fillStyle = (frame % 6 < 3) ? '#06b6d4' : '#38bdf8';
+                ctx.fillRect(cx - 4, cy - 90 + floatY, 8, 25); 
+
+                ctx.fillRect(cx - 6, cy - 2, 12, 12);
+                ctx.fillRect(cx - 22, cy + 12, 6, 8);
+                ctx.fillRect(cx + 16, cy + 12, 6, 8);
+
+                ctx.fillStyle = '#00f0ff';
+                ctx.fillRect(cx - 10, cy - 62 + floatY, 5, 5);
+                ctx.fillRect(cx + 5, cy - 62 + floatY, 5, 5);
+
+            } else if (phase === 3) {
+                let colors = ['#06b6d4', '#ec4899', '#a855f7', '#3b82f6'];
+                let currentColor = colors[Math.floor(frame / 3) % colors.length];
+
+                ctx.fillStyle = currentColor;
+                ctx.globalAlpha = 0.6;
+                ctx.beginPath();
+                ctx.moveTo(cx - 95, cy - 60 + floatY); ctx.lineTo(cx - 20, cy - 20 + floatY); ctx.lineTo(cx - 60, cy + 40 + floatY);
+                ctx.moveTo(cx + 95, cy - 60 + floatY); ctx.lineTo(cx + 20, cy - 20 + floatY); ctx.lineTo(cx + 60, cy + 40 + floatY);
+                ctx.fill();
+                ctx.globalAlpha = 1.0;
+
+                ctx.strokeStyle = currentColor;
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.arc(cx, cy + floatY, 65, 0, Math.PI * 2);
+                ctx.stroke();
+
+                ctx.fillStyle = '#020617';
+                ctx.fillRect(cx - 40, cy - 40 + floatY, 80, 80);
+
+                ctx.fillStyle = currentColor;
+                ctx.fillRect(cx - 20, cy - 12 + floatY, 12, 8);
+                ctx.fillRect(cx + 8, cy - 12 + floatY, 12, 8);
+
+            } else if (phase === 4) {
+                ctx.fillStyle = '#1e1b4b';
+                ctx.fillRect(cx - 35, cy - 20 + floatY, 70, 75);
+
+                ctx.fillStyle = '#0f172a';
+                ctx.fillRect(cx - 20, cy - 40 + floatY, 40, 70); 
+                ctx.fillStyle = '#334155';
+                ctx.fillRect(cx - 15, cy - 20 + floatY, 30, 10);
+
+                ctx.fillStyle = '#0f172a';
+                ctx.fillRect(cx - 18, cy - 60 + floatY, 36, 25);
+                ctx.fillStyle = '#475569';
+                ctx.fillRect(cx - 5, cy - 75 + floatY, 10, 18);
+
+                ctx.fillStyle = '#818cf8';
+                ctx.fillRect(cx - 10, cy - 50 + floatY, 20, 4);
+
+                ctx.fillStyle = '#94a3b8';
+                ctx.fillRect(cx + 28, cy - 80 + floatY, 4, 120);
+                ctx.fillStyle = '#38bdf8';
+                ctx.beginPath();
+                ctx.moveTo(cx + 30, cy - 100 + floatY);
+                ctx.lineTo(cx + 22, cy - 80 + floatY);
+                ctx.lineTo(cx + 38, cy - 80 + floatY);
+                ctx.fill();
+
+            } else if (phase === 5) {
+                ctx.fillStyle = '#eab308';
+                ctx.beginPath();
+                ctx.moveTo(cx - 15, cy - 60 + floatY);
+                ctx.lineTo(cx - 45, cy + floatY + (frame % 8));
+                ctx.lineTo(cx + 45, cy + floatY + (frame % 8));
+                ctx.lineTo(cx + 15, cy - 60 + floatY);
+                ctx.fill();
+
+                ctx.fillStyle = '#f8fafc';
+                ctx.fillRect(cx - 22, cy - 45 + floatY, 44, 75);
+
+                ctx.fillStyle = '#cbd5e1';
+                ctx.fillRect(cx - 18, cy - 25 + floatY, 36, 12);
+                ctx.fillRect(cx - 26, cy - 48 + floatY, 8, 28);
+                ctx.fillRect(cx + 18, cy - 48 + floatY, 8, 28);
+
+                ctx.fillStyle = '#f8fafc';
+                ctx.fillRect(cx - 16, cy - 68 + floatY, 32, 26);
+
+                ctx.fillStyle = '#facc15';
+                ctx.fillRect(cx - 3, cy - 86 + floatY, 6, 20);
+                ctx.fillStyle = (frame % 4 < 2) ? '#facc15' : '#fef08a';
+                ctx.fillRect(cx - 12, cy - 58 + floatY, 8, 5);
+                ctx.fillRect(cx + 4, cy - 58 + floatY, 8, 5);
+                ctx.fillRect(cx - 12, cy - 38 + floatY, 6, 6);
+                ctx.fillRect(cx + 6, cy - 38 + floatY, 6, 6);
+            }
+        }
+    </script>
+</body>
+</html>
