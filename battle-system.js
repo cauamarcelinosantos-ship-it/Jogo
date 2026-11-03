@@ -1,3 +1,13 @@
+import { db } from './app-firebase.js';
+import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+// Exemplo: Salvar pontuação
+async function salvarPontuacao(jogador, pontos) {
+  await addDoc(collection(db, "ranking"), {
+    nome: jogador,
+    pontos: pontos
+  });
+}
 const battleContainer = document.getElementById("battle-container");
 
 let jogadorVida = 100;
