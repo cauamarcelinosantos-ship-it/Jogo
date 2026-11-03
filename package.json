@@ -1,24 +1,11 @@
 {
-  "name": "jogo-rpg",
+  "name": "jogo",
   "version": "1.0.0",
-  "description": "Jogo de RPG por turnos com Firebase",
-  "main": "app-firebase.js",
+  "main": "main.js",
   "scripts": {
-    "start": "npx serve ."
+    "start": "electron ."
   },
-  "keywords": [],
-  "author": "",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/cauamarcelinosantos-ship-it/Jogo.git"
-  },
-  "type": "commonjs",
-  "bugs": {
-  "url": "https://github.com/cauamarcelinosantos-ship-it/Jogo/issues"
-},
-"dependencies": {
-  "react-native-paper": "4.9.2",
-  "@expo/vector-icons": "^15.0.3"}
+  "devDependencies": {
+    "electron": "^33.4.11"
+  }
 }
-
