@@ -1,0 +1,11 @@
+directories:
+  output: dist
+  buildResources: build
+appId: com.dragonquest.nes
+productName: Dragon Quest NES
+linux:
+  target: AppImage
+win:
+  target: portable
+files: []
+electronVersion: 33.4.11

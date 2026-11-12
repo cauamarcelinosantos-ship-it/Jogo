@@ -1,11 +1,24 @@
 {
   "name": "jogo",
   "version": "1.0.0",
+  "description": "Dragon Quest NES: O Duelo Transcendente",
   "main": "main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "build": "electron-builder"
+  },
+  "build": {
+    "appId": "com.dragonquest.nes",
+    "productName": "Dragon Quest NES",
+    "linux": {
+      "target": "AppImage"
+    },
+    "win": {
+      "target": "portable"
+    }
   },
   "devDependencies": {
-    "electron": "^33.4.11"
+    "electron": "^33.4.11",
+    "electron-builder": "^25.1.8"
   }
 }
